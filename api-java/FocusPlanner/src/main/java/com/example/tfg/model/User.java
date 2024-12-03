@@ -1,6 +1,7 @@
-package com.example.focusplanner.model;
+package com.example.tfg.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
 
 @Entity
 @Table(name = "users")

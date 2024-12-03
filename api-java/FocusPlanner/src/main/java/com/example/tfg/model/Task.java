@@ -1,6 +1,10 @@
-package com.example.focusplanner.model;
+package com.example.tfg.model;
 
-import javax.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity

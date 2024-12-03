@@ -1,6 +1,6 @@
-package com.example.focusplanner.repository;
+package com.example.tfg.repository;
 
-import com.example.focusplanner.model.User;
+import com.example.tfg.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
