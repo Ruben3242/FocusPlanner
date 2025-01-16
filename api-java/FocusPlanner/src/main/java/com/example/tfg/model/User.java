@@ -16,8 +16,18 @@ public class User {
     @Column(nullable = false)
     private String name;
 
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean verified) {
+        isVerified = verified;
+    }
+
     @Column(nullable = false)
     private String password;
+    @Column(name = "is_verified", nullable = false)
+    private boolean isVerified = false; // Para la verificación por correo
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Task> tasks;

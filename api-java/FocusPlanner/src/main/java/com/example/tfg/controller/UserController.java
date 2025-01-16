@@ -3,6 +3,8 @@ package com.example.tfg.controller;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
+import com.example.tfg.service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,13 +13,22 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/v1/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserRepository userRepository;
+    private final CustomUserDetailsService userDetailsService;
 
-    public UserController(UserRepository userRepository) {
+    @Autowired
+    public UserController(UserRepository userRepository, CustomUserDetailsService userDetailsService) {
         this.userRepository = userRepository;
+        this.userDetailsService = userDetailsService;
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> registerUser(@RequestBody User user) {
+        userDetailsService.save(user); // Guarda el usuario
+        return ResponseEntity.ok("User registered successfully!");
     }
 
     @GetMapping
@@ -32,7 +43,7 @@ public class UserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/users")
+   /* @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody User user) {
         User existingUser = userRepository.findByEmail(user.getEmail());
         if (existingUser != null) {
@@ -48,6 +59,8 @@ public class UserController {
         User savedUser = userRepository.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
+    */
+
     @PutMapping("/users/{id}")
     public ResponseEntity<?> updaterUser(@PathVariable Long id, @RequestBody User updatedUser) {
         // Buscar el usuario por ID
