@@ -2,6 +2,7 @@ package com.example.tfg.service;
 
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
+import com.example.tfg.security.CustomUserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,24 +22,19 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     public User save(User user) {
-        return userRepository.save(user); // Llama al método save del repositorio
+        return userRepository.save(user);  // Llama al método save del repositorio para guardar el usuario
     }
 
     public boolean existsByEmail(String email) {
-        // Realiza la consulta en la base de datos para verificar si el correo existe
-        return userRepository.existsByEmail(email);
+        return userRepository.existsByEmail(email);  // Verifica si el usuario existe por email
     }
-
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                Collections.emptyList() // Sin roles en este ejemplo
-        );
-    }
 
+        // Devuelve la instancia de CustomUserDetails
+        return new CustomUserDetails(user);
+    }
 }

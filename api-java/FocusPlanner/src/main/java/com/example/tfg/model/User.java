@@ -16,18 +16,11 @@ public class User {
     @Column(nullable = false)
     private String name;
 
-    public boolean isVerified() {
-        return isVerified;
-    }
-
-    public void setVerified(boolean verified) {
-        isVerified = verified;
-    }
-
     @Column(nullable = false)
     private String password;
+
     @Column(name = "is_verified", nullable = false)
-    private boolean isVerified = false; // Para la verificación por correo
+    private boolean isVerified = false; // Se asegura de que esta propiedad sea usada correctamente
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Task> tasks;
@@ -71,5 +64,13 @@ public class User {
 
     public void setTasks(List<Task> tasks) {
         this.tasks = tasks;
+    }
+
+    public boolean isVerified() {
+        return isVerified;
+    }
+
+    public void setVerified(boolean isVerified) {
+        this.isVerified = isVerified;
     }
 }

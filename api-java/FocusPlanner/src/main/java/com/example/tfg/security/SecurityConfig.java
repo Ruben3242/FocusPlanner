@@ -35,7 +35,7 @@ public class SecurityConfig {
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder(); // Codifica las contraseñas
+		return new BCryptPasswordEncoder();  // Utiliza BCrypt para codificar las contraseñas
 	}
 
 	@Bean
