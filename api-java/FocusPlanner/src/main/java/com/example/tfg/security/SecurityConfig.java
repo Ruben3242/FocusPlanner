@@ -25,7 +25,8 @@ public class SecurityConfig {
 // Desactiva CSRF para evitar errores en APIs REST
 				.authorizeHttpRequests(auth -> auth
 						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Permite Swagger
-						.requestMatchers("/api/auth/**").permitAll() // Permite login y registro
+						.requestMatchers("/api/auth/**").permitAll()
+						.requestMatchers("/**").permitAll()// Permite login y registro
 						.anyRequest().authenticated() // Protege el resto
 				)
 				.httpBasic(withDefaults()); // Habilita autenticación básica para pruebas
