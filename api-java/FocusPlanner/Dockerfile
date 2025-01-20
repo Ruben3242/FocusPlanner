@@ -6,10 +6,9 @@ WORKDIR /app
 COPY target/FocusPlanner-0.0.1-SNAPSHOT.jar /app/focus-planner.jar
 
 # Exponer el puerto 8080
-EXPOSE 3306
+EXPOSE 8080
 
 ENV SPRING_PROFILES_ACTIVE=online
-
 
 # Comando para ejecutar la aplicación
 CMD ["java", "-jar", "/app/focus-planner.jar"]
