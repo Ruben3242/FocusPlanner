@@ -20,7 +20,7 @@ COPY --from=build /app/target/FocusPlanner-0.0.1-SNAPSHOT.jar /app/focus-planner
 # Exponer el puerto 8080
 EXPOSE 8080
 
-# Configuración del perfil activo (Online)
+# Establecer el perfil activo como "online" o "local"
 ENV SPRING_PROFILES_ACTIVE=online
 
 # Comando para ejecutar la aplicación
