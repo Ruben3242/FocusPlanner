@@ -1,42 +1,44 @@
 package com.example.tfg.security;
 
+import com.example.tfg.Jwt.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
-import static org.springframework.security.config.Customizer.withDefaults;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-	@Bean
-	SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http.csrf(csrf -> csrf.disable())
-// Desactiva CSRF para evitar errores en APIs REST
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Permite Swagger
-						.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/**").permitAll()// Permite login y registro
-						.anyRequest().authenticated() // Protege el resto
-				)
-				.httpBasic(withDefaults()); // Habilita autenticación básica para pruebas
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-		return http.build();
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		return http
+				.csrf(csrf -> csrf.disable()) // Desactivar CSRF para permitir POST desde Swagger
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/api/auth/**").permitAll() // Permitir autenticación pública
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+						.requestMatchers("/api/users/test-email").permitAll()
+						.anyRequest().authenticated() // Proteger todo lo demás
+				)
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+				.build();
 	}
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();  // Utiliza BCrypt para codificar las contraseñas
+		return new BCryptPasswordEncoder(); // Usar BCrypt para encriptar contraseñas
 	}
 
 	@Bean
@@ -44,3 +46,4 @@ public class SecurityConfig {
 		return authConfig.getAuthenticationManager();
 	}
 }
+

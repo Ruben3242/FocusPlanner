@@ -1,10 +1,10 @@
 package com.example.tfg.controller;
 
+
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
-import com.example.tfg.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,22 +14,16 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
-    private final CustomUserDetailsService userDetailsService;
 
-    @Autowired
-    public UserController(UserRepository userRepository, CustomUserDetailsService userDetailsService) {
-        this.userRepository = userRepository;
-        this.userDetailsService = userDetailsService;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestBody User user) {
-        userDetailsService.save(user); // Guarda el usuario
-        return ResponseEntity.ok("User registered successfully!");
-    }
+//    @PostMapping("/register")
+//    public ResponseEntity<String> registerUser(@RequestBody User user) {
+//        userDetailsService.save(user); // Guarda el usuario
+//        return ResponseEntity.ok("User registered successfully!");
+//    }
 
     @GetMapping
     public List<User> getAllUsers() {
@@ -72,7 +66,7 @@ public class UserController {
         User existingUser = optionalUser.get();
 
         // Actualizar los datos básicos del usuario
-        existingUser.setName(updatedUser.getName());
+        existingUser.setUsername(updatedUser.getUsername());
         existingUser.setEmail(updatedUser.getEmail());
         existingUser.setPassword(updatedUser.getPassword());
 
@@ -96,7 +90,7 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         return userRepository.findById(id)
                 .map(user -> {
-                    user.setName(userDetails.getName());
+                    user.setUsername(userDetails.getUsername());
                     user.setEmail(userDetails.getEmail());
                     user.setPassword(userDetails.getPassword());
                     return ResponseEntity.ok(userRepository.save(user));
@@ -113,5 +107,11 @@ public class UserController {
                 })
                 .orElse(ResponseEntity.status(404).body("User not found"));
     }
+
+//    @GetMapping("/test-email")
+//    public String sendTestEmail() {
+//        testEmailService.sendTestEmail();
+//        return "Correo de prueba enviado. Revisa la consola para errores.";
+//    }
 
 }
