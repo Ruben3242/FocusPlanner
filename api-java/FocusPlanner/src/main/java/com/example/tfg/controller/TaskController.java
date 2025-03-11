@@ -7,8 +7,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +24,8 @@ import java.util.Optional;
 public class TaskController {
 
     private final TaskService taskService;
+    private final PagedResourcesAssembler<Task> pagedResourcesAssembler;
+
 
     // Crear una tarea
     @PostMapping
@@ -34,13 +41,15 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Task>> getAllTasks(
+    public ResponseEntity<PagedModel<Task>> getAllTasks(
             @PageableDefault(size = 10, page = 0) Pageable pageable) {
-        // Obtiene todas las tareas paginadas
-        Page<Task> tasksPage = taskService.getAllTasks(pageable);
 
-        return ResponseEntity.ok(tasksPage); // Devuelve las tareas paginadas
+        Page<Task> tasksPage = taskService.getAllTasks(pageable);
+        PagedModel<Task> pagedModel = pagedResourcesAssembler.toModel(tasksPage, task -> task);
+
+        return ResponseEntity.ok(pagedModel);
     }
+
 
     @GetMapping("/filtro/{completed}")
     public ResponseEntity<List<Task>> getAllTasks(

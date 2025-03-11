@@ -49,6 +49,7 @@ public class UserService {
         user.setFirstname(firstname);
         user.setLastname(lastname);
         user.setCountry(country);
+        user.setRemoveCompletedExpiredTasks(false);
         user.setRole(Role.ADMIN);
         user.setVerified(false);
         user.setVerificationToken(UUID.randomUUID().toString());

@@ -4,6 +4,7 @@ import com.example.tfg.User.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDate;
 
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 @Table(name = "tasks")
-public class Task {
+public class Task extends RepresentationModel<Task> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
