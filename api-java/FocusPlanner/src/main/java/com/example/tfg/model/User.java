@@ -1,6 +1,7 @@
 package com.example.tfg.model;
 
 import com.example.tfg.User.Role;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.Collection;
@@ -25,16 +26,27 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
     private String password;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RefreshToken> refreshTokens; // Lista de Refresh Tokens
+
     private String firstname;
     private String lastname;
     private String country;
     private boolean isVerified;
     private String verificationToken;
-    private Role role;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Task> tasks;
 
     // Getters y setters

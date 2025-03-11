@@ -1,67 +1,46 @@
 package com.example.tfg.controller;
 
 import com.example.tfg.model.Task;
-import com.example.tfg.repository.TaskRepository;
-import com.example.tfg.repository.UserRepository;
+import com.example.tfg.service.TaskService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/tasks")
+@RequestMapping("/api/tasks")
+@RequiredArgsConstructor
 public class TaskController {
 
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
+    private final TaskService taskService;
 
-    public TaskController(TaskRepository taskRepository, UserRepository userRepository) {
-        this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
+    @PostMapping
+    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+        return ResponseEntity.ok(taskService.createTask(task));
     }
 
     @GetMapping
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    public ResponseEntity<List<Task>> getAllTasks() {
+        return ResponseEntity.ok(taskService.getAllTasks());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        return taskRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
-        if (task.getUser() == null || userRepository.findById(task.getUser().getId()).isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.ok(taskRepository.save(task));
+        Optional<Task> task = taskService.getTaskById(id);
+        return task.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task taskDetails) {
-        return taskRepository.findById(id)
-                .map(task -> {
-                    task.setTitle(taskDetails.getTitle());
-                    task.setDescription(taskDetails.getDescription());
-                    task.setCompleted(taskDetails.isCompleted());
-                    task.setDueDate(taskDetails.getDueDate());
-                    task.setPriority(taskDetails.getPriority());
-                    return ResponseEntity.ok(taskRepository.save(task));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
+        return ResponseEntity.ok(taskService.updateTask(id, task));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTask(@PathVariable Long id) {
-        return taskRepository.findById(id)
-                .map(task -> {
-                    taskRepository.delete(task);
-                    return ResponseEntity.noContent().build();
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+        taskService.deleteTask(id);
+        return ResponseEntity.noContent().build();
     }
-
 }

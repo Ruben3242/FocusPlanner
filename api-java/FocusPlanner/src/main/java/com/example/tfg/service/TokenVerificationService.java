@@ -1,7 +1,7 @@
 package com.example.tfg.service;
 
 
-import com.example.tfg.Jwt.TokenVerification;
+import com.example.tfg.model.TokenVerification;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.TokenVerificationRepository;
 import com.example.tfg.repository.UserRepository;
@@ -18,7 +18,7 @@ public class TokenVerificationService {
     private TokenVerificationRepository tokenVerificationRepository;
 
     public boolean verifyToken(String token) {
-        TokenVerification tokenVerification = tokenVerificationRepository.findByToken(token);
+        TokenVerification tokenVerification = tokenVerificationRepository.findByVerificationToken(token).orElse(null);
 
         if (tokenVerification != null) {
             User user = tokenVerification.getUser();

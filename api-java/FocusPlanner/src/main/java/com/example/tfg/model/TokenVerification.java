@@ -1,22 +1,26 @@
-package com.example.tfg.Jwt;
+package com.example.tfg.model;
 
-import com.example.tfg.model.User;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Entity
 @Data
-@RequiredArgsConstructor
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Entity
+@Table(name = "token_verification")
 public class TokenVerification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String token;
+    @Column(name = "verification_token", nullable = false)
+    private String verificationToken;
+
+    @Column(name = "expiration_date", nullable = false)
     private LocalDateTime expiryDate;
 
     @OneToOne
@@ -24,7 +28,7 @@ public class TokenVerification {
     private User user;
 
     public TokenVerification(String token, User user) {
-        this.token = token;
+        this.verificationToken = token;
         this.user = user;
         this.expiryDate = LocalDateTime.now().plusHours(24); // Expira en 24 horas
     }

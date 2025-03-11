@@ -4,9 +4,11 @@ package com.example.tfg.controller;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
+import com.example.tfg.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +20,8 @@ import java.util.Optional;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
 //    @PostMapping("/register")
 //    public ResponseEntity<String> registerUser(@RequestBody User user) {
@@ -32,10 +36,14 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        return userRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        User user = userService.getUserById(id);  // Llama al servicio que obtiene el usuario por ID
+        if (user != null) {
+            return ResponseEntity.ok(user);  // Esto devuelve un objeto User, que Spring convierte a JSON automáticamente
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
+
 
    /* @PostMapping("/users")
     public ResponseEntity<?> createUser(@RequestBody User user) {
@@ -55,48 +63,62 @@ public class UserController {
     }
     */
 
-    @PutMapping("/users/{id}")
-    public ResponseEntity<?> updaterUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        // Buscar el usuario por ID
-        Optional<User> optionalUser = userRepository.findById(id);
-        if (!optionalUser.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
-
-        User existingUser = optionalUser.get();
-
-        // Actualizar los datos básicos del usuario
-        existingUser.setUsername(updatedUser.getUsername());
-        existingUser.setEmail(updatedUser.getEmail());
-        existingUser.setPassword(updatedUser.getPassword());
-
-        // Asociar las tareas al usuario
-        for (Task task : updatedUser.getTasks()) {
-            task.setUser(existingUser); // Asignar el usuario a cada tarea
-        }
-        existingUser.getTasks().clear(); // Limpiar las tareas actuales
-        existingUser.getTasks().addAll(updatedUser.getTasks()); // Agregar las nuevas tareas
-
-        // Guardar el usuario actualizado
-        User savedUser = userRepository.save(existingUser);
-        return ResponseEntity.ok(savedUser);
-    }
-
-
-
-
-
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         return userRepository.findById(id)
-                .map(user -> {
-                    user.setUsername(userDetails.getUsername());
-                    user.setEmail(userDetails.getEmail());
-                    user.setPassword(userDetails.getPassword());
-                    return ResponseEntity.ok(userRepository.save(user));
+                .map(existingUser -> {
+                    // Actualizar los campos básicos del usuario
+                    existingUser.setUsername(userDetails.getUsername());
+                    existingUser.setEmail(userDetails.getEmail());
+
+                    // Si la contraseña ha sido proporcionada, se debe codificar
+                    if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+                        existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword())); // Codificar la contraseña
+                    }
+
+                    // Si las tareas han sido proporcionadas, actualizarlas
+                    if (userDetails.getTasks() != null) {
+                        // Limpiar las tareas actuales
+                        existingUser.getTasks().clear();
+
+                        // Asignar las nuevas tareas y validar que no sean null los campos necesarios
+                        for (Task task : userDetails.getTasks()) {
+                            if (task.getDueDate() == null) {
+                                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Due date cannot be null for tasks");
+                            }
+
+                            task.setUser(existingUser);  // Asociar el usuario con la tarea
+                            existingUser.getTasks().add(task);  // Agregar la tarea a la lista
+                        }
+                    }
+
+                    // Guardar el usuario actualizado
+                    User updatedUser = userRepository.save(existingUser);
+
+                    // Retornar la respuesta con el usuario actualizado
+                    return ResponseEntity.ok(updatedUser);
                 })
-                .orElse(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found")); // Si no se encuentra el usuario
     }
+
+
+
+
+
+
+
+
+//    @PutMapping("/{id}")
+//    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+//        return userRepository.findById(id)
+//                .map(user -> {
+//                    user.setUsername(userDetails.getUsername());
+//                    user.setEmail(userDetails.getEmail());
+//                    user.setPassword(userDetails.getPassword());
+//                    return ResponseEntity.ok(userRepository.save(user));
+//                })
+//                .orElse(ResponseEntity.notFound().build());
+//    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {

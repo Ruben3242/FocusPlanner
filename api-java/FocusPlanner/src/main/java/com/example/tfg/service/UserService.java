@@ -2,20 +2,17 @@ package com.example.tfg.service;
 
 import com.example.tfg.Auth.AuthResponse;
 import com.example.tfg.Auth.LoginRequest;
-import com.example.tfg.Auth.RegisterRequest;
 import com.example.tfg.Jwt.JwtService;
-import com.example.tfg.Jwt.TokenVerification;
+import com.example.tfg.model.TokenVerification;
 import com.example.tfg.User.Role;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.TokenVerificationRepository;
 import com.example.tfg.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -47,8 +44,9 @@ public class UserService {
         user.setFirstname(firstname);
         user.setLastname(lastname);
         user.setCountry(country);
-        user.setRole(Role.USER);
+        user.setRole(Role.ADMIN);
         user.setVerified(false);
+        user.setVerificationToken(UUID.randomUUID().toString());
 
         // Guardar el usuario en la base de datos
         userRepository.save(user);
@@ -101,5 +99,9 @@ public class UserService {
         userRepository.save(user);
 
         return "User verified successfully!";
+    }
+
+    public User getUserById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
     }
 }

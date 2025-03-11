@@ -24,40 +24,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+//    @Override
+//    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+//            throws ServletException, IOException {
+//        String authorizationHeader = request.getHeader("Authorization");
+//
+//        System.out.println("🔍 Header Authorization recibido: " + authorizationHeader);
+//
+//        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+//            System.out.println("🚨 No se encontró un token válido en la petición.");
+//            filterChain.doFilter(request, response);
+//            return;
+//        }
+//
+//        String token = authorizationHeader.substring(7);
+//        System.out.println("🔍 Token extraído: " + token);
+//
+//        filterChain.doFilter(request, response);
+//    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+        String authorizationHeader = request.getHeader("Authorization");
+        System.out.println("🔍 Header Authorization recibido: " + authorizationHeader);
 
-        final String token = getTokenFromRequest(request);
-        final String email;
-
-        if (token == null) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        email = jwtService.getEmailFromToken(token);
+        String token = authorizationHeader.substring(7);  // Quitar "Bearer " del encabezado
+        System.out.println("🔍 Token extraído: " + token);
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+        String username = jwtService.getEmailFromToken(token); // Extraer el username (o email) desde el token
+        if (StringUtils.hasText(username) && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtService.isTokenValid(token, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
+                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authentication); // Establecer autenticación en el contexto
             }
         }
+
         filterChain.doFilter(request, response);
     }
 
-    private String getTokenFromRequest(HttpServletRequest request) {
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-
-        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
-        }
-        return null;
-    }
 }

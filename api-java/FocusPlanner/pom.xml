@@ -149,7 +149,7 @@
 					<artifactId>spring-boot-maven-plugin</artifactId>
 					<version>3.3.5</version>
 					<configuration>
-						<mainClass>com.example.tfg.FocusPlannerApplication</mainClass>  <!-- Aquí se pone tu clase principal -->
+						<mainClass>com.example.tfg.FocusPlannerApplication</mainClass>
 					</configuration>
 				</plugin>
 		</plugins>

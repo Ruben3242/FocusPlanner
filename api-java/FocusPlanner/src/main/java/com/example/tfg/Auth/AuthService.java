@@ -2,9 +2,11 @@ package com.example.tfg.Auth;
 
 import com.example.tfg.Jwt.JwtService;
 import com.example.tfg.User.Role;
+import com.example.tfg.model.RefreshToken;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
 import com.example.tfg.service.EmailService;
+import com.example.tfg.service.RefreshTokenService;
 import com.example.tfg.service.UserService;  // Asegúrate de importar UserService
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -26,37 +28,35 @@ import java.util.UUID;
 public class AuthService {
 
     private final UserRepository userRepository;
+
     private final JwtService jwtService;
-    private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
     private final AuthenticationManager authenticationManager;
-    private final EmailService emailService;
-    private final UserService userService;  // Inyectamos UserService
 
-    // Método para login
+    private final EmailService emailService;
+    private final UserService userService;
+    private final RefreshTokenService refreshTokenService;
+
     public AuthResponse login(LoginRequest request) {
-        // Verificar si el usuario existe
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Verificar si el usuario está verificado
         if (!user.isVerified()) {
             throw new RuntimeException("User is not verified.");
         }
 
-        // Autenticar las credenciales
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Generar el token JWT
-        String token = jwtService.getToken(user);
+        String accessToken = jwtService.getToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
 
-        // Devolver la respuesta con el token y el mensaje
         return AuthResponse.builder()
-                .token(token)
-                .message("Login successful!")  // Aquí asignamos un mensaje explícito
+                .token(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .message("Login successful!")
                 .build();
     }
 

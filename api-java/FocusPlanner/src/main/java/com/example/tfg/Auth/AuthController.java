@@ -1,6 +1,10 @@
 package com.example.tfg.Auth;
 
+import com.example.tfg.Jwt.JwtService;
+import com.example.tfg.model.RefreshToken;
 import com.example.tfg.model.User;
+import com.example.tfg.repository.UserRepository;
+import com.example.tfg.service.RefreshTokenService;
 import com.example.tfg.service.TokenVerificationService;
 import com.example.tfg.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,9 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final RefreshTokenService refreshTokenService;
+    private final JwtService jwtService;
+    private final UserRepository userRepository;
 
     @Autowired
     private TokenVerificationService tokenVerificationService;
@@ -25,19 +32,45 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request){
         return ResponseEntity.ok(authService.login(request));
     }
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+        return refreshTokenService.findByToken(request.getRefreshToken())
+                .filter(refreshTokenService::isTokenValid)
+                .map(refreshToken -> {
+                    String accessToken = jwtService.getToken(refreshToken.getUser());
+                    return ResponseEntity.ok(AuthResponse.builder()
+                            .token(accessToken)
+                            .refreshToken(refreshToken.getToken())
+                            .build());
+                }).orElseGet(() -> ResponseEntity.badRequest().build());
+    }
+    @PostMapping("/refresh-token")
+    public AuthResponse refreshAccessToken(@RequestBody String refreshToken) {
+        System.out.println("Received refresh token: " + refreshToken);  // Agrega este log
+
+        RefreshToken refreshTokenEntity = refreshTokenService.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (!refreshTokenService.isTokenValid(refreshTokenEntity)) {
+            throw new RuntimeException("Refresh token has expired");
+        }
+
+        User user = refreshTokenEntity.getUser();
+        String newAccessToken = jwtService.getToken(user);
+
+        return AuthResponse.builder()
+                .token(newAccessToken)
+                .refreshToken(refreshToken) // Devuelve el mismo refresh token si sigue siendo válido
+                .message("Access token refreshed successfully!")
+                .build();
+    }
+
+
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody User user) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest user) {
         try {
-            // Asegúrate de pasar todos los argumentos que requiere el método registerUser
-            userService.registerUser(
-                    user.getEmail(),      // email
-                    user.getPassword(),   // password
-                    user.getUsername(),   // username
-                    user.getFirstname(),  // firstname
-                    user.getLastname(),   // lastname
-                    user.getCountry()     // country
-            );
+            authService.register(user);
             return ResponseEntity.ok("¡Te has registrado con éxito! Revisa tu correo para verificar tu cuenta.");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Hubo un error durante el registro.");

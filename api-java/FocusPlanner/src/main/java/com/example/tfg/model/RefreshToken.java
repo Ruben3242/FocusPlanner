@@ -4,35 +4,29 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.Instant;
+import java.util.Date;
+
 
 @Entity
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "tasks")
-public class Task {
+public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String title;
+    @Column(nullable = false, unique = true)
+    private String token;
 
     @Column(nullable = false)
-    private String description;
+    private Instant expiryDate;
 
-    @Column(nullable = false)
-    private boolean completed;
-
-    @Column(nullable = false)
-    private LocalDate dueDate;
-
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
     private User user;
 }
