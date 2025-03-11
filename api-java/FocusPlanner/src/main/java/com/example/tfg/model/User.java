@@ -7,15 +7,14 @@ import jakarta.persistence.*;
 import java.util.Collection;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 @Data
+@Setter
+@Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -48,6 +47,17 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Task> tasks;
+
+    @Column(name = "remove_completed_expired_tasks")
+    private boolean removeCompletedExpiredTasks;
+
+    public boolean isRemoveCompletedExpiredTasks() {
+        return removeCompletedExpiredTasks;
+    }
+
+    public void setRemoveCompletedExpiredTasks(boolean removeCompletedExpiredTasks) {
+        this.removeCompletedExpiredTasks = removeCompletedExpiredTasks;
+    }
 
     // Getters y setters
 

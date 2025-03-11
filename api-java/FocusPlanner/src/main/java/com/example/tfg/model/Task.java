@@ -1,5 +1,6 @@
 package com.example.tfg.model;
 
+import com.example.tfg.User.TaskStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -35,4 +36,7 @@ public class Task {
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference
     private User user;
+
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status; // Estado de la tarea
 }

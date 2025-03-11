@@ -4,6 +4,7 @@ package com.example.tfg.controller;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
+import com.example.tfg.service.TaskService;
 import com.example.tfg.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final TaskService taskService;
 
 //    @PostMapping("/register")
 //    public ResponseEntity<String> registerUser(@RequestBody User user) {
@@ -76,6 +78,14 @@ public class UserController {
                         existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword())); // Codificar la contraseña
                     }
 
+                    // Actualizar el campo removeCompletedExpiredTasks
+                    existingUser.setRemoveCompletedExpiredTasks(userDetails.isRemoveCompletedExpiredTasks());
+
+                    // Si removeCompletedExpiredTasks es true, eliminar las tareas completadas o expiradas
+                    if (userDetails.isRemoveCompletedExpiredTasks()) {
+                        taskService.deleteCompletedExpiredTasks(existingUser); // Llamar al servicio para eliminar tareas
+                    }
+
                     // Si las tareas han sido proporcionadas, actualizarlas
                     if (userDetails.getTasks() != null) {
                         // Limpiar las tareas actuales
@@ -100,10 +110,6 @@ public class UserController {
                 })
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found")); // Si no se encuentra el usuario
     }
-
-
-
-
 
 
 

@@ -3,9 +3,11 @@ package com.example.tfg.service;
 import com.example.tfg.Auth.AuthResponse;
 import com.example.tfg.Auth.LoginRequest;
 import com.example.tfg.Jwt.JwtService;
+import com.example.tfg.User.TaskStatus;
 import com.example.tfg.model.TokenVerification;
 import com.example.tfg.User.Role;
 import com.example.tfg.model.User;
+import com.example.tfg.repository.TaskRepository;
 import com.example.tfg.repository.TokenVerificationRepository;
 import com.example.tfg.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +17,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,6 +32,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final EmailService emailService;
     private final TokenVerificationRepository tokenVerificationRepository;
+    private final TaskRepository taskRepository;
 
 
     public User registerUser(String email, String password, String username, String firstname, String lastname, String country) {
@@ -99,6 +104,11 @@ public class UserService {
         userRepository.save(user);
 
         return "User verified successfully!";
+    }
+    @Transactional
+    public void deleteCompletedExpiredTasks(User user) {
+        // Eliminar tareas completadas o vencidas para el usuario
+        taskRepository.deleteByUserAndStatusIn(user, List.of(TaskStatus.COMPLETED, TaskStatus.EXPIRED));
     }
 
     public User getUserById(Long id) {
