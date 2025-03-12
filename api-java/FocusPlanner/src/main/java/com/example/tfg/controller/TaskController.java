@@ -1,6 +1,7 @@
 package com.example.tfg.controller;
 
 import com.example.tfg.User.TaskStatus;
+import com.example.tfg.model.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.service.TaskService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.hateoas.PagedModel;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,11 +37,20 @@ public class TaskController {
     }
 
     @GetMapping("/filter")
-    public ResponseEntity<Page<Task>> getTasksByState(
-            @RequestParam boolean completed,
+    public ResponseEntity<List<Task>> getFilteredTasks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Boolean completed,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dueDate,
+            @RequestParam(required = false) TaskStatus status, // Nueva opción para filtrar por estado
+            @RequestParam(required = false) Priority priority, // Nueva opción para filtrar por prioridad
             Pageable pageable) {
-        return ResponseEntity.ok(taskService.getTasksByState(completed, pageable));
+
+        List<Task> filteredTasks = taskService.getFilteredTasks(title, completed, dueDate, status, priority, pageable);
+        return ResponseEntity.ok(filteredTasks);
     }
+
+
+
 
     @GetMapping
     public ResponseEntity<PagedModel<Task>> getAllTasks(
@@ -50,14 +62,6 @@ public class TaskController {
         return ResponseEntity.ok(pagedModel);
     }
 
-
-    @GetMapping("/filtro/{completed}")
-    public ResponseEntity<List<Task>> getAllTasks(
-            @RequestParam(name = "status", defaultValue = "PENDING") TaskStatus status,
-            @RequestParam(name = "includeCompleted", defaultValue = "false") boolean includeCompleted,
-            @RequestParam(name = "includeExpired", defaultValue = "false") boolean includeExpired) {
-        return ResponseEntity.ok(taskService.   getFilteredTasks(status, includeCompleted, includeExpired));
-    }
 
     // Obtener una tarea específica por ID
     @GetMapping("/{id}")

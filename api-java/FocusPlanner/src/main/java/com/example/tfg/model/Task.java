@@ -40,4 +40,9 @@ public class Task extends RepresentationModel<Task> {
 
     @Enumerated(EnumType.STRING)
     private TaskStatus status; // Estado de la tarea
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Priority priority = Priority.MEDIUM; // Valor por defecto
 }
+

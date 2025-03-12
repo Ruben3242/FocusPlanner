@@ -1,6 +1,7 @@
 package com.example.tfg.service;
 
 import com.example.tfg.User.TaskStatus;
+import com.example.tfg.model.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.TaskRepository;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -69,6 +71,9 @@ public class TaskService {
         if (task.getDueDate() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
         }
+        if (task.getPriority() == null) {
+            task.setPriority(Priority.MEDIUM); // Establecer prioridad por defecto si no se especifica
+        }
 
         task.setUser(user);
         return taskRepository.save(task);
@@ -102,22 +107,33 @@ public class TaskService {
         System.out.println("Recordatorio: La tarea '" + task.getTitle() + "' está próxima a vencer.");
     }
 
-    public List<Task> getFilteredTasks(TaskStatus status, boolean includeCompleted, boolean includeExpired) {
-        User user = getAuthenticatedUser();
+    public List<Task> getFilteredTasks(String title, Boolean completed, LocalDate dueDate, TaskStatus status, Priority priority, Pageable pageable) {
+        Specification<Task> spec = Specification.where(null);
 
-        switch (status) {
-            case COMPLETED:
-                return taskRepository.findByUserAndCompletedTrue(user);
-            case EXPIRED:
-                return taskRepository.findByUserAndDueDateBeforeAndCompletedFalse(user, LocalDate.now());
-            case PENDING:
-                return taskRepository.findByUserAndCompletedFalseAndDueDateAfter(user, LocalDate.now());
-            case COMPLETED_OR_EXPIRED:
-                return taskRepository.findByUserAndCompletedTrueOrDueDateBeforeAndCompletedFalse(user, LocalDate.now());
-            default:
-                return taskRepository.findByUser(user);
+        if (title != null) {
+            spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
         }
+
+        if (completed != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("completed"), completed));
+        }
+
+        if (dueDate != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("dueDate"), dueDate));
+        }
+
+        if (status != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("status"), status));
+        }
+
+        if (priority != null) {
+            spec = spec.and((root, query, cb) -> cb.equal(root.get("priority"), priority));
+        }
+
+        return taskRepository.findAll(spec, pageable).getContent();
     }
+
+
     public void deleteCompletedExpiredTasks() {
         User user = getAuthenticatedUser();
         boolean removeCompletedExpiredTasks = user.isRemoveCompletedExpiredTasks();
@@ -145,9 +161,8 @@ public class TaskService {
         return taskRepository.findByIdAndUser(id, user);
     }
 
-    // Actualizar una tarea si pertenece al usuario autenticado
     public Task updateTask(Long id, Task taskDetails) {
-        User user = getAuthenticatedUser();
+        User user = getAuthenticatedUser(); // Obtener el usuario autenticado
         Task task = taskRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
 
@@ -155,13 +170,20 @@ public class TaskService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
         }
 
+        // Actualizar los campos de la tarea
         task.setTitle(taskDetails.getTitle());
         task.setDescription(taskDetails.getDescription());
         task.setCompleted(taskDetails.isCompleted());
         task.setDueDate(taskDetails.getDueDate());
 
+        // Si la prioridad es proporcionada, actualizarla
+        if (taskDetails.getPriority() != null) {
+            task.setPriority(taskDetails.getPriority());
+        }
+
         return taskRepository.save(task);
     }
+
 
     // Eliminar una tarea solo si pertenece al usuario autenticado
     public void deleteTask(Long id) {

@@ -5,10 +5,13 @@ import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<Task, Long> , JpaSpecificationExecutor<Task> {
     List<Task> findByUser(User user);
     Optional<Task> findByIdAndUser(Long id, User user);
     Page<Task> findByUser(User user, Pageable pageable);
@@ -29,12 +32,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findByUserAndDueDateBeforeAndCompletedFalse(User user, LocalDate now);
 
-    List<Task> findByUserAndCompletedFalseAndDueDateAfter(User user, LocalDate now);
-
-    List<Task> findByUserAndCompletedTrueOrDueDateBeforeAndCompletedFalse(User user, LocalDate now);
-    // Buscar tareas por usuario y estado (pendientes)
-    List<Task> findByUserAndStatus(User user, TaskStatus status);
-
     // Eliminar tareas completadas o expiradas del usuario
     @Modifying
     @Transactional
@@ -42,4 +39,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     void deleteAllCompletedOrExpiredTasks(@Param("user") User user);
 
     void deleteByUserAndStatusIn(User user, List<TaskStatus> statuses);
+
+    Page<Task> findAll(Specification<Task> spec, Pageable pageable);
 }
