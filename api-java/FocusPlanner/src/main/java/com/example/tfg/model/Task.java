@@ -1,6 +1,7 @@
 package com.example.tfg.model;
 
-import com.example.tfg.User.TaskStatus;
+import com.example.tfg.enums.TaskStatus;
+import com.example.tfg.enums.Priority;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -39,10 +40,13 @@ public class Task extends RepresentationModel<Task> {
     private User user;
 
     @Enumerated(EnumType.STRING)
-    private TaskStatus status; // Estado de la tarea
+    private TaskStatus status;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Priority priority = Priority.MEDIUM; // Valor por defecto
+    private Priority priority = Priority.MEDIUM;
+
+    @Column(name = "google_calendar_event_id")
+    private String googleCalendarEventId;
 }
 

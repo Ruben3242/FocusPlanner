@@ -1,7 +1,8 @@
 package com.example.tfg.service;
 
-import com.example.tfg.User.TaskStatus;
-import com.example.tfg.model.Priority;
+import com.example.tfg.GogleCalendar.service.GoogleCalendarIntegration;
+import com.example.tfg.enums.TaskStatus;
+import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.TaskRepository;
@@ -24,8 +25,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.tfg.User.TaskStatus.COMPLETED_OR_EXPIRED;
-
 @Service
 @RequiredArgsConstructor
 public class TaskService {
@@ -33,6 +32,8 @@ public class TaskService {
     private final TaskRepository taskRepository;
     @Autowired
     private final UserRepository userRepository;
+    @Autowired
+    private final GoogleCalendarIntegration googleCalendarIntegration;
 
     // Obtener el usuario autenticado
     private User getAuthenticatedUser() {
@@ -66,18 +67,18 @@ public class TaskService {
     }
 
     // Crear una nueva tarea
-    public Task createTask(Task task) {
-        User user = getAuthenticatedUser();
-        if (task.getDueDate() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
-        }
-        if (task.getPriority() == null) {
-            task.setPriority(Priority.MEDIUM); // Establecer prioridad por defecto si no se especifica
-        }
-
-        task.setUser(user);
-        return taskRepository.save(task);
-    }
+//    public Task createTask(Task task) {
+//        User user = getAuthenticatedUser();
+//        if (task.getDueDate() == null) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
+//        }
+//        if (task.getPriority() == null) {
+//            task.setPriority(Priority.MEDIUM); // Establecer prioridad por defecto si no se especifica
+//        }
+//
+//        task.setUser(user);
+//        return taskRepository.save(task);
+//    }
 
     // Configurable: cantidad de días antes de la fecha de vencimiento para considerar la tarea "próxima a vencer"
     @Value("${task.reminder.daysBeforeDueDate:3}")
@@ -161,35 +162,90 @@ public class TaskService {
         return taskRepository.findByIdAndUser(id, user);
     }
 
+//    public Task updateTask(Long id, Task taskDetails) {
+//        User user = getAuthenticatedUser(); // Obtener el usuario autenticado
+//        Task task = taskRepository.findByIdAndUser(id, user)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
+//
+//        if (taskDetails.getDueDate() == null) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
+//        }
+//
+//        // Actualizar los campos de la tarea
+//        task.setTitle(taskDetails.getTitle());
+//        task.setDescription(taskDetails.getDescription());
+//        task.setCompleted(taskDetails.isCompleted());
+//        task.setDueDate(taskDetails.getDueDate());
+//
+//        // Si la prioridad es proporcionada, actualizarla
+//        if (taskDetails.getPriority() != null) {
+//            task.setPriority(taskDetails.getPriority());
+//        }
+//
+//        return taskRepository.save(task);
+//    }
+
+
+    // Eliminar una tarea solo si pertenece al usuario autenticado
+//    public void deleteTask(Long id) {
+//        User user = getAuthenticatedUser();
+//        Task task = taskRepository.findByIdAndUser(id, user)
+//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
+//        taskRepository.delete(task);
+//    }
+
+    public Task createTask(Task task) {
+        User user = getAuthenticatedUser();
+        task.setUser(user);
+        Task savedTask = taskRepository.save(task);
+
+        try {
+            String eventId = googleCalendarIntegration.addEvent(savedTask);
+            savedTask.setGoogleCalendarEventId(eventId);
+            taskRepository.save(savedTask);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return savedTask;
+    }
+
     public Task updateTask(Long id, Task taskDetails) {
-        User user = getAuthenticatedUser(); // Obtener el usuario autenticado
+        User user = getAuthenticatedUser();
         Task task = taskRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
 
-        if (taskDetails.getDueDate() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
-        }
-
-        // Actualizar los campos de la tarea
         task.setTitle(taskDetails.getTitle());
         task.setDescription(taskDetails.getDescription());
         task.setCompleted(taskDetails.isCompleted());
         task.setDueDate(taskDetails.getDueDate());
 
-        // Si la prioridad es proporcionada, actualizarla
-        if (taskDetails.getPriority() != null) {
-            task.setPriority(taskDetails.getPriority());
+        Task updatedTask = taskRepository.save(task);
+
+        try {
+            if (updatedTask.getGoogleCalendarEventId() != null) {
+                googleCalendarIntegration.updateEvent(updatedTask.getGoogleCalendarEventId(), updatedTask);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return taskRepository.save(task);
+        return updatedTask;
     }
 
-
-    // Eliminar una tarea solo si pertenece al usuario autenticado
     public void deleteTask(Long id) {
         User user = getAuthenticatedUser();
         Task task = taskRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
+
+        try {
+            if (task.getGoogleCalendarEventId() != null) {
+                googleCalendarIntegration.deleteEvent(task.getGoogleCalendarEventId());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         taskRepository.delete(task);
     }
 }

@@ -1,7 +1,7 @@
 package com.example.tfg.controller;
 
-import com.example.tfg.User.TaskStatus;
-import com.example.tfg.model.Priority;
+import com.example.tfg.enums.TaskStatus;
+import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.service.TaskService;
 import lombok.RequiredArgsConstructor;

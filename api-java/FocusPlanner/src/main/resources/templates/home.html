@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+</head>
+<body>
+<h1>Bienvenido</h1>
+<div th:if="${usuario}">
+    <p>Hola, <span th:text="${usuario}"></span></p>
+    <a href="/logout">Cerrar sesión</a>
+</div>
+<div th:unless="${usuario}">
+    <a href="/oauth2/authorization/google">Iniciar sesión con Google</a>
+</div>
+</body>
+</html>

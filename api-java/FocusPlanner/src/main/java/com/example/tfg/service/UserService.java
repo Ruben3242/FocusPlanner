@@ -1,14 +1,14 @@
 package com.example.tfg.service;
 
-import com.example.tfg.Auth.AuthResponse;
-import com.example.tfg.Auth.LoginRequest;
-import com.example.tfg.Jwt.JwtService;
-import com.example.tfg.User.TaskStatus;
-import com.example.tfg.model.TokenVerification;
-import com.example.tfg.User.Role;
+import com.example.tfg.security.model.AuthResponse;
+import com.example.tfg.security.model.LoginRequest;
+import com.example.tfg.security.Jwt.JwtService;
+import com.example.tfg.enums.TaskStatus;
+import com.example.tfg.security.model.TokenVerification;
+import com.example.tfg.enums.Role;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.TaskRepository;
-import com.example.tfg.repository.TokenVerificationRepository;
+import com.example.tfg.security.repository.TokenVerificationRepository;
 import com.example.tfg.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;

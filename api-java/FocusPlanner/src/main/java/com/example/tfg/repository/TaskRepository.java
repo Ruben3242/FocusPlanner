@@ -1,6 +1,6 @@
 package com.example.tfg.repository;
 
-import com.example.tfg.User.TaskStatus;
+import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import org.springframework.data.domain.Page;
@@ -11,7 +11,6 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.data.web.PagedModel;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 

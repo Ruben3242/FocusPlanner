@@ -1,6 +1,7 @@
 package com.example.tfg.model;
 
-import com.example.tfg.User.Role;
+import com.example.tfg.security.model.RefreshToken;
+import com.example.tfg.enums.Role;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
