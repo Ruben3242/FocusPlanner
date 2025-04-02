@@ -34,3 +34,5 @@ build/
 
 # Ignorar todos los archivos dentro de la carpeta de recursos
 src/main/resources/**
+# Excluir SecurityConfig.java
+src/main/java/com/example/tfg/config/SecurityConfig.java
