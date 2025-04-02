@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Ignorar todos los archivos dentro de la carpeta de recursos
+src/main/resources/**
