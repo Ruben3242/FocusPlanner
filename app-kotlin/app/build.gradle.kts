@@ -28,11 +28,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
@@ -40,6 +40,28 @@ android {
 }
 
 dependencies {
+    // Jetpack Compose
+    val composeBom = platform("androidx.compose:compose-bom:2024.03.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+
+    // Material 3
+    implementation(libs.material3)
+
+    // ViewModel y LiveData
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+
+    // Retrofit y Gson para la API
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+
+    // Navegación en Jetpack Compose
+    implementation(libs.androidx.navigation.compose)
+
+    // Coil (para cargar imágenes)
+    implementation(libs.coil.compose)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
