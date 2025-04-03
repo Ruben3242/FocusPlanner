@@ -52,7 +52,6 @@ public class UserService {
         user.setRemoveCompletedExpiredTasks(false);
         user.setRole(Role.ADMIN);
         user.setVerified(false);
-        user.setVerificationToken(UUID.randomUUID().toString());
 
         // Guardar el usuario en la base de datos
         userRepository.save(user);
@@ -91,18 +90,22 @@ public class UserService {
 
     // Método para verificar la cuenta del usuario
     public String verifyUser(String token) {
-        // Buscar el usuario con el token de verificación
-        User user = userRepository.findByVerificationToken(token).orElseThrow(() -> new RuntimeException("Invalid token or user not found"));
+        // Buscar en la tabla de tokens de verificación
+        TokenVerification tokenVerification = tokenVerificationRepository.findByVerificationToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid token or expired"));
 
-        // Verificar que el token no haya sido usado previamente
+        User user = tokenVerification.getUser();
+
         if (user.isVerified()) {
             throw new RuntimeException("User is already verified.");
         }
 
-        // Cambiar el estado de verificación del usuario
+        // Marcar usuario como verificado
         user.setVerified(true);
-        user.setVerificationToken(null); // Limpiar el token después de la verificación
         userRepository.save(user);
+
+        // Eliminar el token después de la verificación
+        tokenVerificationRepository.delete(tokenVerification);
 
         return "User verified successfully!";
     }

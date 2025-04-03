@@ -49,16 +49,10 @@ public class User implements UserDetails {
     @JsonManagedReference
     private List<Task> tasks;
 
+    @Getter
+    @Setter
     @Column(name = "remove_completed_expired_tasks")
     private boolean removeCompletedExpiredTasks;
-
-    public boolean isRemoveCompletedExpiredTasks() {
-        return removeCompletedExpiredTasks;
-    }
-
-    public void setRemoveCompletedExpiredTasks(boolean removeCompletedExpiredTasks) {
-        this.removeCompletedExpiredTasks = removeCompletedExpiredTasks;
-    }
 
     // Getters y setters
 

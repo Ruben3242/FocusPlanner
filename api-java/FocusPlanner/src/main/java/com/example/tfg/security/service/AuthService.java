@@ -68,24 +68,11 @@ public class AuthService {
                 request.getCountry()
         );
 
-        // Generar un token de verificación y enviarlo por correo
-        String verificationToken = UUID.randomUUID().toString();
-        user.setVerificationToken(verificationToken);
-        System.out.println("Token generado: " + verificationToken);
-        userRepository.save(user);
-
-        // Agregar try-catch para capturar errores en el envío de correo
-        try {
-            emailService.sendVerificationEmail(user, verificationToken);
-        } catch (Exception e) {
-            System.err.println("Error al enviar el correo: " + e.getMessage());
-            e.printStackTrace();
-        }
-
         return AuthResponse.builder()
                 .message("User registered successfully. Please verify your email.")
                 .build();
     }
+
 
     // Método para verificar el token de un usuario
     public String verifyUser(String token) {
