@@ -8,7 +8,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.focus_planner.data.api.RetrofitInstance
 import com.example.focus_planner.data.auth.AuthManager
 import com.example.focus_planner.data.token.TokenManager
-import com.example.focus_planner.ui.login.LoginScreen
 import com.example.focus_planner.ui.theme.Focus_plannerTheme
 
 import androidx.compose.foundation.layout.*

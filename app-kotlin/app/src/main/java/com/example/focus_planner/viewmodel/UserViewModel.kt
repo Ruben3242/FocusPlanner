@@ -37,20 +37,17 @@ class UserViewModel(private val apiService: ApiService) : ViewModel() {
         }
     }
 
-    fun register(name: String, email: String, password: String, onResult: (Boolean) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
+    fun register(name: String, email: String, password: String, onResult: (String) -> Unit) {
+        viewModelScope.launch {
             try {
-                val response: Response<String> = RetrofitInstance.api.register(RegisterRequest(name, email, password))
-
+                val response = apiService.register(RegisterRequest(name, email, password))
                 if (response.isSuccessful) {
-                    // Aquí puedes guardar el token o manejar la respuesta
-                    onResult(true)
+                    onResult("Registro exitoso, ya puedes verificar tu cuenta en tu correo electronico .")
                 } else {
-                    onResult(false)
+                    onResult("Error en el registro, intentalo nuevamente.")
                 }
             } catch (e: Exception) {
-                Log.e("UserViewModel", "Error en registro: $e")
-                onResult(false)
+                onResult("Error en el registro, por favor intenta de nuevo.")
             }
         }
     }

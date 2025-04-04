@@ -12,7 +12,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.viewmodel.UserViewModel
 
 @Composable
@@ -24,12 +23,13 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
-    var registerFailed by remember { mutableStateOf(false) }
+    var message by remember { mutableStateOf("") }
+
     val context = LocalContext.current
 
-    LaunchedEffect(registerFailed) {
-        if (registerFailed) {
-            Toast.makeText(context, "Error al registrarse", Toast.LENGTH_SHORT).show()
+    LaunchedEffect(message) {
+        if (message.isNotEmpty()) {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -79,12 +79,11 @@ fun RegisterScreen(
             onClick = {
                 if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                     isLoading = true
-                    viewModel.register(name, email, password) { success ->
+                    viewModel.register(name, email, password) { resultMessage ->
                         isLoading = false
-                        if (success) {
+                        message = resultMessage
+                        if (resultMessage.contains("verifica tu correo")) {
                             navController.navigate("login")
-                        } else {
-                            registerFailed = true
                         }
                     }
                 }
@@ -110,11 +109,7 @@ fun RegisterScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewRegisterScreen() {
-    
-    RegisterScreen(
-        navController = rememberNavController(),
-        viewModel = UserViewModel(
-            apiService = TODO()
-        )
-    )
+    RegisterScreen(navController = rememberNavController(), viewModel = UserViewModel(
+        apiService = TODO()
+    ))
 }

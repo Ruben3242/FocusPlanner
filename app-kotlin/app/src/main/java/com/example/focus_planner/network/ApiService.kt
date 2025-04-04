@@ -1,6 +1,7 @@
 package com.example.focus_planner.network
 
 import com.example.focus_planner.model.LoginResponse
+import com.example.focus_planner.model.RegisterResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -15,5 +16,5 @@ interface ApiService {
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
 
     @POST("api/auth/register")
-    suspend fun register(@Body request: RegisterRequest): Response<String>
+    suspend fun register(@Body registerRequest: RegisterRequest): Response<RegisterResponse>
 }
