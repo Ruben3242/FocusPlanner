@@ -12,6 +12,7 @@ kotlin {
 android {
     namespace = "com.example.focus_planner"
     compileSdk = 35
+
     defaultConfig {
         applicationId = "com.example.focus_planner"
         minSdk = 24
@@ -62,8 +63,17 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     // Retrofit y Gson para la API
+
+
+    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+
+    // Para Hilt (si decides usarlo)
+    implementation (libs.androidx.hilt.navigation.compose)
+
+
 
     // Navegación en Jetpack Compose
     implementation(libs.androidx.navigation.compose)

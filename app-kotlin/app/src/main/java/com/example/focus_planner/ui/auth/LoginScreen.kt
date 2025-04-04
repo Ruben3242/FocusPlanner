@@ -70,7 +70,9 @@ fun LoginScreen(
                     viewModel.login(email, password) { success ->
                         isLoading = false
                         if (success) {
-                            navController.navigate("task_list")
+                            navController.navigate("home") {
+                                popUpTo("login") { inclusive = true }
+                            }
                         } else {
                             loginFailed = true
                         }
@@ -98,5 +100,10 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewLoginScreen() {
-    LoginScreen(navController = rememberNavController(), viewModel = UserViewModel())
+    LoginScreen(
+        navController = rememberNavController(),
+        viewModel = UserViewModel(
+            apiService = TODO()
+        )
+    )
 }

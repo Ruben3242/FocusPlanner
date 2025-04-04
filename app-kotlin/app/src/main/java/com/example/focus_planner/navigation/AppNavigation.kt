@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.ui.auth.LoginScreen
 import com.example.focus_planner.ui.auth.RegisterScreen
 import com.example.focus_planner.ui.calendar.CalendarScreen
@@ -16,7 +17,7 @@ import com.example.focus_planner.viewmodel.UserViewModel
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    val userViewModel: UserViewModel = viewModel()
+    val userViewModel = UserViewModel(RetrofitInstance.api)
 
     NavHost(navController = navController, startDestination = "login") {
         composable("login") { LoginScreen(navController, userViewModel) }
