@@ -2,12 +2,16 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+//    id("com.google.devtools.ksp") version "1.9.0-1.0.11"  // Versión compatible de KSP
+}
+
+kotlin {
+    jvmToolchain(17) // Configura correctamente Kotlin a la versión JVM 17
 }
 
 android {
     namespace = "com.example.focus_planner"
     compileSdk = 35
-
     defaultConfig {
         applicationId = "com.example.focus_planner"
         minSdk = 24
@@ -27,19 +31,24 @@ android {
             )
         }
     }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17  // Cambia a Java 21
+        targetCompatibility = JavaVersion.VERSION_17  // Cambia a Java 21
     }
+
     kotlinOptions {
-        jvmTarget = "17"
+        jvmTarget = "17"  // Asegúrate de que el target de Kotlin sea también Java 21
     }
     buildFeatures {
         compose = true
+        viewBinding = true // Aquí habilitas View Binding
     }
 }
 
 dependencies {
+    implementation(libs.androidx.datastore.core.android)
+    implementation(libs.androidx.appcompat)
     // Jetpack Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.03.00")
     implementation(composeBom)
@@ -62,6 +71,16 @@ dependencies {
     // Coil (para cargar imágenes)
     implementation(libs.coil.compose)
 
+    // Room
+    implementation(libs.androidx.room.runtime)  // Asegúrate de que la versión sea correcta
+    annotationProcessor(libs.androidx.room.compiler)  // Si usas Java
+//    ksp("androidx.room:room-compiler:2.6.1")  // Si usas Kotlin
+
+    // Room para coroutines
+    implementation(libs.androidx.room.ktx)  // Asegúrate de que la versión sea correcta
+
+    //Calendario
+    implementation (libs.jakewharton.threetenabp)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

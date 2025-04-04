@@ -2,6 +2,7 @@
 agp = "8.8.0"
 coilCompose = "2.4.0"
 converterGson = "2.9.0"
+datastorePreferences = "1.1.4"
 kotlin = "2.0.0"
 coreKtx = "1.10.1"
 junit = "4.13.2"
@@ -12,14 +13,32 @@ activityCompose = "1.8.0"
 composeBom = "2024.04.01"
 lifecycleViewmodelCompose = "2.8.7"
 navigationCompose = "2.8.9"
+roomCompiler = "2.6.1"
+roomCompilerVersion = "2.5.0"
+roomKtx = "2.6.1"
+roomKtxVersion = "2.5.0"
+roomRuntime = "2.6.1"
+datastoreCoreAndroid = "1.1.4"
+roomRuntimeVersion = "2.5.0"
+appcompat = "1.7.0"
+threetenabpVersion = "1.4.4"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-datastore-core = { module = "androidx.datastore:datastore-core", version.ref = "datastorePreferences" }
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
+androidx-room-compiler-v250 = { module = "androidx.room:room-compiler", version.ref = "roomCompilerVersion" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomKtx" }
+androidx-room-ktx-v250 = { module = "androidx.room:room-ktx", version.ref = "roomKtxVersion" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
+androidx-room-runtime-v250 = { module = "androidx.room:room-runtime", version.ref = "roomRuntimeVersion" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+jakewharton-threetenabp = { module = "com.jakewharton.threetenabp:threetenabp", version.ref = "threetenabpVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -35,6 +54,8 @@ androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 material3 = { module = "androidx.compose.material3:material3" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "converterGson" }
+androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
