@@ -1,13 +1,19 @@
 package com.example.focus_planner.data.repository
 
-class UserRepository {
+import android.content.Context
+import com.example.focus_planner.data.local.AppDatabase
+import com.example.focus_planner.data.local.UserTokenDao
+import com.example.focus_planner.model.LoginResponse
+import com.example.focus_planner.model.RegisterResponse
+import com.example.focus_planner.network.ApiService
+import com.example.focus_planner.network.LoginRequest
+import com.example.focus_planner.network.RegisterRequest
+import com.example.focus_planner.network.RetrofitInstance
+import retrofit2.Response
 
-    // Simulamos la autenticación para este ejemplo
-    suspend fun authenticateUser(email: String, password: String): String? {
-        return if (email == "user@example.com" && password == "password123") {
-            "jwt-token-example" // Devuelve el token si la autenticación es exitosa
-        } else {
-            null // Si el login falla, devuelve null
-        }
+class UserRepository {
+    class UserRepository(private val apiService: ApiService = RetrofitInstance.api) {
+        suspend fun login(email: String, password: String) = apiService.login(LoginRequest(email, password))
+        suspend fun register(name: String, email: String, password: String) = apiService.register(RegisterRequest(name, email, password))
     }
 }

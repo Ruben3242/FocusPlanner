@@ -10,26 +10,23 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.viewmodel.UserViewModel
+import com.example.focus_planner.viewmodel.UserViewModelFactory
 
 @Composable
-fun LoginScreen(
-    navController: NavController,
-    viewModel: UserViewModel
-) {
+fun LoginScreen(navController: NavController) {
+    val context = LocalContext.current
+    val userViewModel: UserViewModel = viewModel(
+        factory = UserViewModelFactory(context)
+    )
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var loginFailed by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-
-    LaunchedEffect(loginFailed) {
-        if (loginFailed) {
-            Toast.makeText(context, "Error al iniciar sesión", Toast.LENGTH_SHORT).show()
-        }
-    }
 
     Column(
         modifier = Modifier
@@ -67,9 +64,10 @@ fun LoginScreen(
             onClick = {
                 if (email.isNotEmpty() && password.isNotEmpty()) {
                     isLoading = true
-                    viewModel.login(email, password) { success ->
+                    userViewModel.login(email, password, context) { success ->
                         isLoading = false
                         if (success) {
+                            loginFailed = false
                             navController.navigate("home") {
                                 popUpTo("login") { inclusive = true }
                             }
@@ -91,8 +89,20 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        TextButton(onClick = { navController.navigate("register") }) {
+        TextButton(onClick = {
+            navController.navigate("register") {
+                popUpTo("login") { inclusive = true } // También útil para evitar regresar al login después del registro
+            }
+        }) {
             Text("¿No tienes cuenta? Regístrate")
+        }
+
+        if (loginFailed) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Error al iniciar sesión. Verifica tus credenciales.",
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }
@@ -101,9 +111,6 @@ fun LoginScreen(
 @Composable
 fun PreviewLoginScreen() {
     LoginScreen(
-        navController = rememberNavController(),
-        viewModel = UserViewModel(
-            apiService = TODO()
-        )
+        navController = rememberNavController()
     )
 }

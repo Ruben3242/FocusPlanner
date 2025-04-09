@@ -2,8 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-//    id("com.google.devtools.ksp") version "1.9.0-1.0.11"  // Versión compatible de KSP
+    id("kotlin-kapt")
+    alias(libs.plugins.dagger.hilt)
 }
+
 
 kotlin {
     jvmToolchain(17) // Configura correctamente Kotlin a la versión JVM 17
@@ -34,16 +36,19 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17  // Cambia a Java 21
-        targetCompatibility = JavaVersion.VERSION_17  // Cambia a Java 21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "17"  // Asegúrate de que el target de Kotlin sea también Java 21
+        jvmTarget = "17"
     }
     buildFeatures {
         compose = true
-        viewBinding = true // Aquí habilitas View Binding
+        viewBinding = true
+    }
+    kapt {
+        correctErrorTypes = true
     }
 }
 
@@ -70,9 +75,8 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.okhttp)
 
-    // Para Hilt (si decides usarlo)
-    implementation (libs.androidx.hilt.navigation.compose)
-
+    implementation("com.google.dagger:hilt-android:2.50")
+    kapt("com.google.dagger:hilt-compiler:2.50")
 
 
     // Navegación en Jetpack Compose
@@ -82,17 +86,26 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Room
-    implementation(libs.androidx.room.runtime)  // Asegúrate de que la versión sea correcta
-    annotationProcessor(libs.androidx.room.compiler)  // Si usas Java
-//    ksp("androidx.room:room-compiler:2.6.1")  // Si usas Kotlin
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.3")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
-    // Room para coroutines
-    implementation(libs.androidx.room.ktx)  // Asegúrate de que la versión sea correcta
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    implementation(libs.room.runtime)
+    kapt(libs.room.compiler)
+    implementation("androidx.activity:activity-ktx:1.6.0")
+    implementation("androidx.fragment:fragment-ktx:1.5.3")
+//Finish room
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+
 
     //Calendario
     implementation (libs.jakewharton.threetenabp)
 
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
