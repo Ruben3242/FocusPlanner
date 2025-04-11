@@ -1,4 +1,4 @@
-package com.example.focus_planner.ui.tasks
+package com.example.focus_planner.ui.screens.tasks
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*

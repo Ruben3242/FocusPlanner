@@ -16,10 +16,10 @@ import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.ui.auth.LoginScreen
 import com.example.focus_planner.ui.auth.RegisterScreen
 import com.example.focus_planner.ui.calendar.CalendarScreen
-import com.example.focus_planner.ui.home.MainScreen
-import com.example.focus_planner.ui.profile.ProfileScreen
-import com.example.focus_planner.ui.tasks.TaskDetailScreen
-import com.example.focus_planner.ui.tasks.TaskListScreen
+import com.example.focus_planner.ui.screens.home.MainScreen
+import com.example.focus_planner.ui.screens.profile.ProfileScreen
+import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
+import com.example.focus_planner.ui.screens.tasks.TaskListScreen
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.viewmodel.UserViewModel
 import com.example.focus_planner.viewmodel.UserViewModelFactory

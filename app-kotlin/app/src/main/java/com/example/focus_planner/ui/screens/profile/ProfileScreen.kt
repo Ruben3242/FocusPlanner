@@ -1,4 +1,4 @@
-package com.example.focus_planner.ui.profile
+package com.example.focus_planner.ui.screens.profile
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
