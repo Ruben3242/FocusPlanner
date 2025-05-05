@@ -1,18 +1,13 @@
 package com.example.focus_planner.navigation
 
-import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.focus_planner.data.repository.UserRepository
-import com.example.focus_planner.network.ApiService
-import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.ui.auth.LoginScreen
 import com.example.focus_planner.ui.auth.RegisterScreen
 import com.example.focus_planner.ui.calendar.CalendarScreen
@@ -21,8 +16,8 @@ import com.example.focus_planner.ui.screens.profile.ProfileScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
 import com.example.focus_planner.ui.screens.tasks.TaskListScreen
 import com.example.focus_planner.utils.SharedPreferencesManager
+import com.example.focus_planner.viewmodel.ProfileViewModel
 import com.example.focus_planner.viewmodel.UserViewModel
-import com.example.focus_planner.viewmodel.UserViewModelFactory
 
 @Composable
 fun AppNavigation(
@@ -45,6 +40,15 @@ fun AppNavigation(
             TaskDetailScreen(taskId = taskId)
         }
         composable("calendar") { CalendarScreen() }
-        composable("profile") { ProfileScreen() }
+        // Aquí instanciamos ProfileViewModel usando viewModel() y pasando ApiService a través de RetrofitInstance
+        composable("profile") {
+            val profileViewModel: ProfileViewModel = hiltViewModel()
+            ProfileScreen(
+                navController = navController,
+                viewModel = profileViewModel,
+                token = token ?: ""
+            )
+
+        }
     }
 }

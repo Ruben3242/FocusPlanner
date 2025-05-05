@@ -5,14 +5,17 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import com.example.tfg.model.User;
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtService {
@@ -104,5 +107,43 @@ public class JwtService {
      */
     private boolean isTokenExpired(String token) {
         return getExpiration(token).before(new Date());
+    }
+    public Authentication getAuthentication(String token) {
+        try {
+            String id = extractId(token); // ← sacamos el ID directamente del token
+            String role = getUserRoleFromToken(token); // ← sacamos el rol para la autoridad
+
+            SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + role);
+
+            return new UsernamePasswordAuthenticationToken(id, null, List.of(authority));
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+
+
+    // Método para extraer el nombre de usuario desde el token (asume que el token contiene el nombre de usuario)
+    public String extractUsername(String token) {
+        // Lógica para extraer el username del token (por ejemplo, decodificando JWT)
+        return "usernameFromToken";  // Ajusta esto según cómo esté estructurado tu token
+    }
+    // Método para extraer el ID del token
+    public String extractId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("id").toString(); // si el ID es un número, conviértelo a String
+    }
+
+    // Método genérico para extraer una "claim" del token (como el ID)
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
+    }
+    // Método para obtener todas las claims del token
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(SECRET_KEY)
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

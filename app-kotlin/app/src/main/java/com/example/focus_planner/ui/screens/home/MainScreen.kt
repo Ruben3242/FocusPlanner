@@ -10,10 +10,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
 
 @Composable
 fun MainScreen(onNavigate: (String) -> Unit) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -30,6 +34,13 @@ fun MainScreen(onNavigate: (String) -> Unit) {
         MenuCard("📋 Mis Tareas", "tasks", onNavigate)
         MenuCard("📅 Calendario", "calendar", onNavigate)
         MenuCard("👤 Perfil", "profile", onNavigate)
+        // Cerrar sesión
+        MenuCard("🔒 Cerrar Sesión", "login",
+            onNavigate = {
+                clearSession(context)
+                onNavigate("login") // Después de limpiar la sesión, navega a la pantalla de login
+            }
+        )
     }
 }
 

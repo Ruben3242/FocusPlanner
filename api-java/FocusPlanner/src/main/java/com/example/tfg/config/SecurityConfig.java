@@ -55,23 +55,24 @@ public class SecurityConfig {
 						.requestMatchers("/api/users/**").authenticated()
 						.requestMatchers("/", "/login", "/error","/test/**").permitAll()
 						.requestMatchers("/oauth2/token").permitAll()
+						.requestMatchers("/api/users/profile").authenticated()
 						.requestMatchers("/oauth2/callback/**").permitAll() // Añadir esto para que la ruta de callback sea pública
 						.anyRequest().authenticated() // Proteger todo lo demás
 				)
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.oauth2Login(oauth2 -> oauth2
-						.clientRegistrationRepository(clientRegistrationRepository())
-						.defaultSuccessUrl("/dashboard", true) // Redirigir al usuario a la página de inicio después de la autenticación
-						.authorizedClientService(authorizedClientService(clientRegistrationRepository()))
-						.loginPage("/oauth2/authorization/google")
-						.failureUrl("/login?error=true")
-						.redirectionEndpoint(redirection -> redirection.baseUri("/oauth2/callback")) // Ruta de callback
-						.failureHandler((request, response, exception) -> {
-							String errorMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
-							response.sendRedirect("/login?error=" + errorMessage);
-						})
-
-				)
+//				.oauth2Login(oauth2 -> oauth2
+//						.clientRegistrationRepository(clientRegistrationRepository())
+//						.defaultSuccessUrl("/dashboard", true) // Redirigir al usuario a la página de inicio después de la autenticación
+//						.authorizedClientService(authorizedClientService(clientRegistrationRepository()))
+//						.loginPage("/oauth2/authorization/google")
+//						.failureUrl("/login?error=true")
+//						.redirectionEndpoint(redirection -> redirection.baseUri("/oauth2/callback")) // Ruta de callback
+//						.failureHandler((request, response, exception) -> {
+//							String errorMessage = URLEncoder.encode(exception.getMessage(), StandardCharsets.UTF_8);
+//							response.sendRedirect("/login?error=" + errorMessage);
+//						})
+//
+//				)
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				.build();
 	}

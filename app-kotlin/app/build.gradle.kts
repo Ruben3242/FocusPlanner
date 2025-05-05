@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
-    alias(libs.plugins.dagger.hilt)
+    id("com.google.dagger.hilt.android")
+//    alias(libs.plugins.dagger.hilt)
 }
 
 
@@ -76,8 +77,13 @@ dependencies {
     implementation(libs.okhttp)
 
     implementation("com.google.dagger:hilt-android:2.50")
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+//    implementation("com.squareup:javapoet:1.13.0")
     kapt("com.google.dagger:hilt-compiler:2.50")
 
+
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     // Navegación en Jetpack Compose
     implementation(libs.androidx.navigation.compose)

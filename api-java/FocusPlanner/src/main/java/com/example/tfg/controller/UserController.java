@@ -4,11 +4,13 @@ package com.example.tfg.controller;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
+import com.example.tfg.security.Jwt.JwtService;
 import com.example.tfg.service.TaskService;
 import com.example.tfg.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +26,7 @@ public class UserController {
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final TaskService taskService;
+    private final JwtService jwtService;
 
 //    @PostMapping("/register")
 //    public ResponseEntity<String> registerUser(@RequestBody User user) {
@@ -73,6 +76,14 @@ public class UserController {
                     existingUser.setUsername(userDetails.getUsername());
                     existingUser.setEmail(userDetails.getEmail());
 
+                    // Actualizar los campos firstname y lastname
+                    if (userDetails.getFirstname() != null) {
+                        existingUser.setFirstname(userDetails.getFirstname());
+                    }
+                    if (userDetails.getLastname() != null) {
+                        existingUser.setLastname(userDetails.getLastname());
+                    }
+
                     // Si la contraseña ha sido proporcionada, se debe codificar
                     if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
                         existingUser.setPassword(passwordEncoder.encode(userDetails.getPassword())); // Codificar la contraseña
@@ -85,6 +96,15 @@ public class UserController {
                     if (userDetails.isRemoveCompletedExpiredTasks()) {
                         taskService.deleteCompletedExpiredTasks(existingUser); // Llamar al servicio para eliminar tareas
                     }
+                    // Actualizar los campos firstname y lastname
+                    if (userDetails.getFirstname() != null) {
+                        existingUser.setFirstname(userDetails.getFirstname());
+                    }
+                    if (userDetails.getLastname() != null) {
+                        existingUser.setLastname(userDetails.getLastname());
+                    }
+                    System.out.println("Firstname recibido: " + userDetails.getFirstname());
+                    System.out.println("Lastname recibido: " + userDetails.getLastname());
 
                     // Si las tareas han sido proporcionadas, actualizarlas
                     if (userDetails.getTasks() != null) {
@@ -141,5 +161,30 @@ public class UserController {
 //        testEmailService.sendTestEmail();
 //        return "Correo de prueba enviado. Revisa la consola para errores.";
 //    }
+    @GetMapping("/profile")
+    public ResponseEntity<User> getUserProfile(@RequestHeader("Authorization") String authorizationHeader) {
+        try {
+            // Extraer el token
+            String token = authorizationHeader.substring(7); // "Bearer "
+
+            // Extraer el email directamente del token (ya está en el subject)
+            String email = jwtService.getEmailFromToken(token);
+
+            // Buscar el usuario por email
+            User user = userService.getUserByEmail(email);
+
+            if (user != null) {
+                // Aquí también podrías incluir el id si necesitas enviarlo específicamente
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 
 }
+
+

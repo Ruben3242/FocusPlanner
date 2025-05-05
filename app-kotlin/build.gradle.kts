@@ -5,3 +5,8 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     kotlin("kapt") version "1.9.0" apply false
 }
+buildscript {
+    dependencies {
+        classpath("com.google.dagger:hilt-android-gradle-plugin:2.50")
+    }
+}

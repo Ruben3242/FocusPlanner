@@ -24,7 +24,9 @@ import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.viewmodel.UserViewModel
 import com.example.focus_planner.viewmodel.UserViewModelFactory
 import com.jakewharton.threetenabp.AndroidThreeTen
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
