@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 public class EmailService {
 
+    @Value("${verification.url}")
+    private String verificationUrl;
+
     private final JavaMailSender mailSender;
 
     @Async
@@ -28,7 +31,7 @@ public class EmailService {
                 + "<div style=\"max-width: 600px; margin: auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);\">"
                 + "<h2 style=\"color: #4CAF50;\">¡Bienvenido, " + user.getUsername() + "!</h2>"
                 + "<p style=\"font-size: 16px; color: #333;\">Gracias por registrarte en nuestra plataforma. Para activar tu cuenta, por favor haz clic en el botón de abajo.</p>"
-                + "<a href=\"http://localhost:8080/api/auth/verify?token=" + token + "\" "
+                + "<a href=\"" + verificationUrl + token + "\""
                 + "style=\"display: inline-block; background-color: #4CAF50; color: white; padding: 14px 24px; font-size: 16px; text-decoration: none; border-radius: 6px; margin: 20px 0;\">"
                 + "Verificar mi cuenta</a>"
                 + "<p style=\"font-size: 14px; color: #777;\">Este enlace caducará en 24 horas.</p>"
