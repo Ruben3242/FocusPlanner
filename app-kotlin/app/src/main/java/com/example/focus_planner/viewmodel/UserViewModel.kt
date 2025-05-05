@@ -7,9 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserToken
 import com.example.focus_planner.data.repository.UserRepository
+import com.example.focus_planner.model.LoginRequest
+import com.example.focus_planner.model.RegisterRequest
 import com.example.focus_planner.network.ApiService
-import com.example.focus_planner.network.LoginRequest
-import com.example.focus_planner.network.RegisterRequest
 import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.utils.SharedPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,13 +50,13 @@ class UserViewModel @Inject constructor(
 
                         if (newToken != null && newRefreshToken != null) {
                             // Guarda el nuevo token, refreshToken y la fecha de expiración
-//                            SharedPreferencesManager.saveLoginData(context, newToken, newRefreshToken, expirationDate)
-                            SharedPreferencesManager.saveLoginData(
-                                context,
-                                newToken,
-                                refreshToken,
-                                System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
-                            )
+                              SharedPreferencesManager.saveLoginData(context, newToken, newRefreshToken, expirationDate)
+//                            SharedPreferencesManager.saveLoginData(
+//                                context,
+//                                newToken,
+//                                refreshToken,
+//                                System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
+//                            )
                             Log.d("UserViewModel", "Token refrescado exitosamente.")
                             onResult(true)
                         } else {
@@ -93,13 +93,13 @@ class UserViewModel @Inject constructor(
 
                     if (token != null && refreshToken != null) {
                         // Guarda el token, refreshToken y la fecha de expiración
-//                          SharedPreferencesManager.saveLoginData(context, token, refreshToken, expirationDate)
-                        SharedPreferencesManager.saveLoginData(
-                            context,
-                            token,
-                            refreshToken,
-                            System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
-                        )
+                          SharedPreferencesManager.saveLoginData(context, token, refreshToken, expirationDate)
+//                        SharedPreferencesManager.saveLoginData(
+//                            context,
+//                            token,
+//                            refreshToken,
+//                            System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
+//                        )
                         Log.d("UserViewModel", "Login exitoso, token guardado.")
                         onResult(true)
                     } else {
@@ -128,23 +128,6 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    // Llamada de ejemplo a una API protegida
-    fun fetchProtectedData(context: Context, onResult: (Boolean) -> Unit) {
-        checkTokenAndRefresh(context) { isTokenValid ->
-            if (isTokenValid) {
-                // Realizar la solicitud a la API protegida
-                // Aquí es donde puedes hacer tu solicitud a la API
-                // Ejemplo:
-                // val token = SharedPreferencesManager.getToken(context)
-                // apiService.getData("Bearer $token").enqueue(...)
-
-                onResult(true)
-            } else {
-                onResult(false)
-            }
-        }
-    }
-
     // Función para hacer logout
     fun logout(context: Context) {
         SharedPreferencesManager.clearToken(context)
@@ -155,20 +138,31 @@ class UserViewModel @Inject constructor(
     }
 
     // Función para registrar un nuevo usuario
-    fun register(name: String, email: String, password: String, onResult: (String) -> Unit) {
+    fun register(username: String, email: String, password: String, onResult: (String) -> Unit) {
         viewModelScope.launch {
             try {
-                val response = apiService.register(RegisterRequest(name, email, password))
+                val request = RegisterRequest(username, email, password, "", "", "")
+                val response = apiService.register(request)
+
+                Log.d("Register", "Código de respuesta: ${response.code()}")
+                Log.d("Register", "Cuerpo: ${response.body()?.message}")
+                Log.d("Register", "ErrorBody: ${response.errorBody()?.string()}")
+
                 if (response.isSuccessful) {
-                    onResult("Registro exitoso, ya puedes verificar tu cuenta en tu correo electronico.")
+                    val message = response.body()?.message ?: "Registro exitoso."
+                    onResult(message)
                 } else {
-                    onResult("Error en el registro, intentalo nuevamente.")
+                    val error = response.errorBody()?.string()
+                    onResult("Error en el registro: ${error ?: "intenta nuevamente"}")
                 }
             } catch (e: Exception) {
+                Log.e("Register", "Excepción durante el registro", e)
                 onResult("Error en el registro, por favor intenta de nuevo.")
             }
         }
     }
+
+
 
     // Función para guardar el token en la base de datos
     private fun saveToken(email: String, token: String, expiryTime: Long) {

@@ -112,13 +112,13 @@ object TokenManager {
 
                         if (newToken != null && newRefresh != null) {
                             val newExpiration = System.currentTimeMillis() + 24 * 60 * 60 * 1000
-//                            SharedPreferencesManager.saveLoginData(context, newToken, newRefresh, newExpiration)
-                            SharedPreferencesManager.saveLoginData(
-                                context,
-                                newToken,
-                                refreshToken,
-                                System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
-                            )
+                            SharedPreferencesManager.saveLoginData(context, newToken, newRefresh, newExpiration)
+//                            SharedPreferencesManager.saveLoginData(
+//                                context,
+//                                newToken,
+//                                refreshToken,
+//                                System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
+//                            )
                             Log.d("TokenDebug", "Token actualizado correctamente")
                         } else {
                             Log.e("TokenDebug", "Token o refreshToken nulos en la respuesta.")

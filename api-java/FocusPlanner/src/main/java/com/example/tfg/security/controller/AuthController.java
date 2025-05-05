@@ -1,12 +1,8 @@
 package com.example.tfg.security.controller;
 
-import com.example.tfg.security.model.AuthResponse;
-import com.example.tfg.security.model.LoginRequest;
-import com.example.tfg.security.model.RefreshTokenRequest;
-import com.example.tfg.security.model.RegisterRequest;
+import com.example.tfg.security.model.*;
 import com.example.tfg.security.service.AuthService;
 import com.example.tfg.security.Jwt.JwtService;
-import com.example.tfg.security.model.RefreshToken;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
 import com.example.tfg.security.service.RefreshTokenService;
@@ -16,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -73,14 +71,16 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest user) {
+    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest user) {
         try {
             authService.register(user);
-            return ResponseEntity.ok("¡Te has registrado con éxito! Revisa tu correo para verificar tu cuenta.");
+            RegisterResponse response = new RegisterResponse("¡Te has registrado con éxito! Revisa tu correo para verificar tu cuenta.");
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Hubo un error durante el registro.");
+            return ResponseEntity.status(500).body(new RegisterResponse("Hubo un error durante el registro."));
         }
     }
+
 
     @GetMapping("/verify")
     public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {

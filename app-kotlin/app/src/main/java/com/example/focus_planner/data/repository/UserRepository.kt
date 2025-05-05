@@ -4,9 +4,9 @@ import android.content.Context
 import com.example.focus_planner.data.local.AppDatabase
 import com.example.focus_planner.data.model.UserToken
 import com.example.focus_planner.data.local.UserTokenDao
+import com.example.focus_planner.model.LoginRequest
+import com.example.focus_planner.model.RegisterRequest
 import com.example.focus_planner.network.ApiService
-import com.example.focus_planner.network.LoginRequest
-import com.example.focus_planner.network.RegisterRequest
 import com.example.focus_planner.network.RetrofitInstance
 import dagger.Module
 import dagger.Provides
@@ -33,7 +33,9 @@ import javax.inject.Inject
         suspend fun getUserFromToken(token: String): UserToken? = userTokenDao.getTokenByEmail(token)
 
         suspend fun login(email: String, password: String) = apiService.login(LoginRequest(email, password))
-        suspend fun register(name: String, email: String, password: String) = apiService.register(RegisterRequest(name, email, password))
+        suspend fun register(name: String, email: String, password: String) = apiService.register(
+            RegisterRequest(name, email, password)
+        )
     }
 
 

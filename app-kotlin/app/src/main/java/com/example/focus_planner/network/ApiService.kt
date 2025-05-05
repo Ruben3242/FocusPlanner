@@ -3,9 +3,12 @@ package com.example.focus_planner.network
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
+import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.model.LoginResponse
+import com.example.focus_planner.model.RegisterRequest
 import com.example.focus_planner.model.RegisterResponse
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -15,8 +18,8 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 
 // Definimos las solicitudes HTTP para login y registro
-data class LoginRequest(val email: String, val password: String)
-data class RegisterRequest(val name: String, val email: String, val password: String)
+//data class LoginRequest(val email: String, val password: String)
+//data class RegisterRequest(val name: String, val email: String, val password: String)
 
 interface ApiService {
 
@@ -24,7 +27,8 @@ interface ApiService {
     suspend fun login(@Body loginRequest: LoginRequest): Response<LoginResponse>
 
     @POST("api/auth/register")
-    suspend fun register(@Body registerRequest: RegisterRequest): Response<RegisterResponse>
+    suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
+
 
     @PUT("api/users/{id}")
     suspend fun updateUserById(
