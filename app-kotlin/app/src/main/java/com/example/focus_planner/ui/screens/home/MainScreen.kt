@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -12,12 +13,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
 import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
+import com.example.focus_planner.utils.TokenManager
 
 @Composable
 fun MainScreen(onNavigate: (String) -> Unit) {
     val context = LocalContext.current
-
+    LaunchedEffect(Unit) {
+        TokenManager.checkTokenAndRefresh(context, NavController(context))
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -66,8 +71,8 @@ fun MenuCard(title: String, route: String, onNavigate: (String) -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewMainScreen() {
-    MainScreen {}
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewMainScreen() {
+//    MainScreen(onNavigate = {}, navController = NavController(LocalContext.current)) // Proporciona un NavController de prueba
+//}

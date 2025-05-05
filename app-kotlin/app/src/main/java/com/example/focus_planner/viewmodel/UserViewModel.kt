@@ -10,10 +10,13 @@ import com.example.focus_planner.data.repository.UserRepository
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.network.LoginRequest
 import com.example.focus_planner.network.RegisterRequest
+import com.example.focus_planner.network.RetrofitInstance
 import com.example.focus_planner.utils.SharedPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,7 +37,12 @@ class UserViewModel @Inject constructor(
         if (refreshToken != null) {
             viewModelScope.launch(Dispatchers.IO) {
                 try {
-                    val response = apiService.refreshToken(refreshToken)
+                    val refreshToken = SharedPreferencesManager.getRefreshToken(context) ?: return@launch
+                    val mediaType = "text/plain".toMediaType()
+                    val requestBody = refreshToken.toRequestBody(mediaType)
+
+                    val response = RetrofitInstance.api.refreshToken(requestBody)
+
                     if (response.isSuccessful) {
                         val newToken = response.body()?.token
                         val newRefreshToken = response.body()?.refreshToken
@@ -42,7 +50,13 @@ class UserViewModel @Inject constructor(
 
                         if (newToken != null && newRefreshToken != null) {
                             // Guarda el nuevo token, refreshToken y la fecha de expiración
-                            SharedPreferencesManager.saveLoginData(context, newToken, newRefreshToken, expirationDate)
+//                            SharedPreferencesManager.saveLoginData(context, newToken, newRefreshToken, expirationDate)
+                            SharedPreferencesManager.saveLoginData(
+                                context,
+                                newToken,
+                                refreshToken,
+                                System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
+                            )
                             Log.d("UserViewModel", "Token refrescado exitosamente.")
                             onResult(true)
                         } else {
@@ -79,7 +93,13 @@ class UserViewModel @Inject constructor(
 
                     if (token != null && refreshToken != null) {
                         // Guarda el token, refreshToken y la fecha de expiración
-                        SharedPreferencesManager.saveLoginData(context, token, refreshToken, expirationDate)
+//                          SharedPreferencesManager.saveLoginData(context, token, refreshToken, expirationDate)
+                        SharedPreferencesManager.saveLoginData(
+                            context,
+                            token,
+                            refreshToken,
+                            System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
+                        )
                         Log.d("UserViewModel", "Login exitoso, token guardado.")
                         onResult(true)
                     } else {
@@ -220,7 +240,12 @@ class UserViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val response = apiService.refreshToken(refreshToken)
+                val refreshToken = SharedPreferencesManager.getRefreshToken(context) ?: return@launch
+                val mediaType = "text/plain".toMediaType()
+                val requestBody = refreshToken.toRequestBody(mediaType)
+
+                val response = RetrofitInstance.api.refreshToken(requestBody)
+
                 if (response.isSuccessful) {
                     val newToken = response.body()?.token
                     val newRefreshToken = response.body()?.refreshToken

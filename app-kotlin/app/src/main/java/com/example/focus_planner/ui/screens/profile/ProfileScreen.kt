@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.utils.SharedPreferencesManager
+import com.example.focus_planner.utils.TokenManager
 import com.example.focus_planner.viewmodel.ProfileViewModel
 
 @Composable
@@ -40,6 +41,9 @@ fun ProfileScreen(
 
 
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        TokenManager.checkTokenAndRefresh(context, navController)
+    }
     var newUsername by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var newFirstname by remember { mutableStateOf("") }

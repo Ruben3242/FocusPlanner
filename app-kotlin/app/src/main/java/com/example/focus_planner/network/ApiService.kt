@@ -5,6 +5,7 @@ import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
 import com.example.focus_planner.model.LoginResponse
 import com.example.focus_planner.model.RegisterResponse
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -68,6 +69,5 @@ interface ApiService {
 //    ): Response<User>
 
     //refrescar el token
-    @POST("/api/auth/refresh-token")
-    suspend fun refreshToken(@Body refreshToken: String): Response<LoginResponse>
-}
+    @POST("api/auth/refresh-token")
+    suspend fun refreshToken(@Body body: RequestBody): Response<LoginResponse>}

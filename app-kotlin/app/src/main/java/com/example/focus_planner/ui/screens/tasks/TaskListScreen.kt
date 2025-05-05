@@ -12,6 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavController
+import com.example.focus_planner.utils.TokenManager
 
 // Modelo temporal para tareas
 data class Task(val id: Int, val title: String, val description: String)
@@ -25,6 +28,10 @@ val sampleTasks = listOf(
 
 @Composable
 fun TaskListScreen(onTaskClick: (Int) -> Unit) {
+    val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        TokenManager.checkTokenAndRefresh(context, NavController(context))
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,8 +69,8 @@ fun TaskCard(task: Task, onTaskClick: (Int) -> Unit) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewTaskListScreen() {
-    TaskListScreen {}
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewTaskListScreen() {
+//    TaskListScreen(onTaskClick = {}, navController = NavController(LocalContext.current)) // Proporciona un NavController de prueba
+//}

@@ -2,6 +2,7 @@ package com.example.focus_planner.utils
 
 import android.content.Context
 import android.util.Log
+import kotlin.math.E
 
 object SharedPreferencesManager {
     private const val PREFS_NAME = "focus_planner_prefs"
@@ -31,19 +32,20 @@ object SharedPreferencesManager {
     }
 
     // Guardar token, refreshToken, fecha de expiración y login timestamp
-    fun saveLoginData(context: Context, token: String?, refreshToken: String?, expirationDate: Long) {
-        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.putString(TOKEN_KEY, token)
-        editor.putString(REFRESH_TOKEN_KEY, refreshToken)
-        editor.putLong(EXPIRATION_KEY, expirationDate)
-        editor.putLong(LOGIN_TIMESTAMP_KEY, System.currentTimeMillis()) // Guarda el timestamp de login
-        editor.apply()
-
-        Log.d("SharedPreferencesManager", "Login data guardado: token $token, refreshToken $refreshToken, Expiración: $expirationDate")
+    fun saveLoginData(context: Context, token: String, refreshToken: String, tokenExpiration: Long) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString(TOKEN_KEY, token)
+            .putString(REFRESH_TOKEN_KEY, refreshToken)
+            .putLong(EXPIRATION_KEY, tokenExpiration)
+            .putLong(LOGIN_TIMESTAMP_KEY, System.currentTimeMillis())
+            .apply()
     }
 
-
+    fun getInitialLoginTimestamp(context: Context): Long {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return prefs.getLong(LOGIN_TIMESTAMP_KEY, 0L)
+    }
     // Obtener token guardado
     fun getToken(context: Context): String? {
         val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -130,5 +132,13 @@ object SharedPreferencesManager {
     fun getTokenObtainedDate(context: Context): Long {
         val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         return sharedPreferences.getLong("token_obtained_date", System.currentTimeMillis())
+    }
+    fun getRefreshTokenExpirationTime(context: Context): Long {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getLong(EXPIRATION_KEY, System.currentTimeMillis())
+    }
+    fun getTokenExpirationTime(context: Context): Long {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getLong(EXPIRATION_KEY, 0)
     }
 }
