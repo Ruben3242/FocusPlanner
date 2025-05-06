@@ -11,11 +11,12 @@ import com.example.tfg.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
-@RestController
+@Controller
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
@@ -32,10 +33,12 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
+    @ResponseBody
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request){
         return ResponseEntity.ok(authService.login(request));
     }
     @PostMapping("/refresh")
+    @ResponseBody
     public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         return refreshTokenService.findByToken(request.getRefreshToken())
                 .filter(refreshTokenService::isTokenValid)
@@ -48,6 +51,7 @@ public class AuthController {
                 }).orElseGet(() -> ResponseEntity.badRequest().build());
     }
     @PostMapping("/refresh-token")
+    @ResponseBody
     public AuthResponse refreshAccessToken(@RequestBody String refreshToken) {
         System.out.println("Received refresh token: " + refreshToken);  // Agrega este log
 
@@ -71,6 +75,7 @@ public class AuthController {
 
 
     @PostMapping("/register")
+    @ResponseBody
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest user) {
         try {
             authService.register(user);
@@ -81,16 +86,9 @@ public class AuthController {
         }
     }
 
-
     @GetMapping("/verify")
-    public ResponseEntity<String> verifyAccount(@RequestParam("token") String token) {
+    public String verifyAccount(@RequestParam("token") String token) {
         boolean isVerified = tokenVerificationService.verifyToken(token);
-
-        if (isVerified) {
-            return ResponseEntity.ok("Tu cuenta ha sido verificada con éxito.");
-        } else {
-            return ResponseEntity.status(400).body("Token de verificación inválido o expirado.");
-        }
+        return isVerified ? "verification_success" : "verification_error";
     }
-
 }
