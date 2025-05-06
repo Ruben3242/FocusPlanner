@@ -1,27 +1,14 @@
-# Usar una imagen base de Maven para construir el proyecto
-FROM maven:3-openjdk-17 AS build
+# Usar una imagen base con Java
+FROM openjdk:17-jdk-slim
 
+# Directorio de trabajo en el contenedor
 WORKDIR /app
 
-# Copiar el código fuente al contenedor
-COPY . .
-
-# Construir el archivo JAR usando Maven
-RUN mvn clean package -DskipTests
-
-# Usar una imagen base de OpenJDK para ejecutar la aplicaci
-FROM openjdk:17-slim
-
-WORKDIR /app
-
-# Copiar el archivo JAR del contenedor de construcción al contenedor de ejecución
-COPY --from=build /app/target/FocusPlanner-0.0.1-SNAPSHOT.jar /app/focus-planner.jar
+# Copiar el archivo JAR generado al contenedor
+COPY target/FocusPlanner-0.0.1-SNAPSHOT.jar /app/FocusPlanner.jar
 
 # Exponer el puerto 8080
 EXPOSE 8080
 
-# Establecer el perfil activo como "online" o "local"
-ENV SPRING_PROFILES_ACTIVE=online
-
-# Comando para ejecutar la aplicación
-CMD ["java", "-jar", "/app/focus-planner.jar"]
+# Ejecutar el archivo JAR
+ENTRYPOINT ["java", "-jar", "FocusPlanner.jar"]
