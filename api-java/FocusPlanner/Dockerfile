@@ -1,14 +1,16 @@
-# Usar una imagen base con Java
-FROM openjdk:17-jdk-slim
+# Etapa de construcción
+FROM maven:3-openjdk-17 AS build
 
-# Directorio de trabajo en el contenedor
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copiar el archivo JAR generado al contenedor
-COPY target/FocusPlanner-0.0.1-SNAPSHOT.jar /app/FocusPlanner.jar
+# Etapa de ejecución
+FROM openjdk:17-slim
 
-# Exponer el puerto 8080
+WORKDIR /app
+COPY --from=build /app/target/FocusPlanner-0.0.1-SNAPSHOT.jar /app/focus-planner.jar
+
 EXPOSE 8080
-
-# Ejecutar el archivo JAR
-ENTRYPOINT ["java", "-jar", "FocusPlanner.jar"]
+ENV SPRING_PROFILES_ACTIVE=online
+CMD ["java", "-jar", "/app/focus-planner.jar"]
