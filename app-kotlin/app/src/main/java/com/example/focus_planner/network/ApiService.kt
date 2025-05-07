@@ -12,6 +12,7 @@ import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
@@ -115,6 +116,14 @@ interface ApiService {
         @Query("size") size: Int = 10,
         @Header("Authorization") token: String
     ): Response<List<Task>>
+
+
+    @DELETE("/api/tasks/{id}")
+    suspend fun deleteTaskById(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String
+    ): Response<Void>
+
 
 
 

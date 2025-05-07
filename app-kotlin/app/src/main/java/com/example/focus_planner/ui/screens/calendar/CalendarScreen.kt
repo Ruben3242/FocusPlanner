@@ -1,4 +1,4 @@
-package com.example.focus_planner.ui.calendar
+package com.example.focus_planner.ui.screens.calendar
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn

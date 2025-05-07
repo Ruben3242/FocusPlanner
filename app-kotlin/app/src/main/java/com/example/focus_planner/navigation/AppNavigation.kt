@@ -16,7 +16,7 @@ import com.example.focus_planner.data.model.TaskPriority
 import com.example.focus_planner.data.model.TaskStatus
 import com.example.focus_planner.ui.auth.LoginScreen
 import com.example.focus_planner.ui.auth.RegisterScreen
-import com.example.focus_planner.ui.calendar.CalendarScreen
+import com.example.focus_planner.ui.screens.calendar.CalendarScreen
 import com.example.focus_planner.ui.screens.home.MainScreen
 import com.example.focus_planner.ui.screens.profile.ProfileScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen

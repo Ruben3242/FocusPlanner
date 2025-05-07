@@ -1,5 +1,6 @@
 package com.example.focus_planner.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,19 +9,24 @@ import com.example.focus_planner.data.model.TaskPriority
 import com.example.focus_planner.data.model.TaskStatus
 import com.example.focus_planner.data.repository.TaskRepository
 import com.example.focus_planner.network.ApiService
+import com.example.focus_planner.utils.SharedPreferencesManager
+import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.time.delay
 import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
-    private val repository: TaskRepository,
+    private val repository: TaskRepository
 ) : ViewModel() {
 
+    private val _taskDeleted = MutableStateFlow<Boolean?>(null)
+    val taskDeleted: StateFlow<Boolean?> = _taskDeleted
     private val _taskList = MutableStateFlow<List<Task>>(emptyList())
     val taskList: StateFlow<List<Task>> = _taskList
 
@@ -170,5 +176,33 @@ class TaskViewModel @Inject constructor(
                 _selectedTask.value = null
             }
         }
+    }
+    //Funcion para eliminar una tarea
+    fun deleteTask(context: Context, taskId: Long) {
+        val token = getToken(context)
+        if (token == null) {
+            _taskDeleted.value = false
+            return
+        }
+
+
+        viewModelScope.launch {
+            val success = repository.deleteTaskById(taskId, token)
+            _taskDeleted.value = success
+
+            loadTasks(
+                token = token,
+                title = _searchQuery.value,
+                status = _statusFilter.value,
+                priority = _priorityFilter.value,
+                completed = _showCompleted.value,
+                page = _page.value
+            )
+            refreshTasks()
+        }
+    }
+
+    fun resetTaskDeletedFlag() {
+        _taskDeleted.value = null
     }
 }

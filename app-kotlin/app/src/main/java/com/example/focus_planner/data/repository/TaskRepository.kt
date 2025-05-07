@@ -68,4 +68,13 @@ class TaskRepository @Inject constructor(private val api: ApiService) {
             Result.failure(e)
         }
     }
+
+    suspend fun deleteTaskById(taskId: Long, token: String): Boolean {
+        return try {
+            val response = api.deleteTaskById(taskId, "Bearer $token")
+            response.isSuccessful
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
