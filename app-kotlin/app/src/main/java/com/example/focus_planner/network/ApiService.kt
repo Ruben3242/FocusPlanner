@@ -1,5 +1,6 @@
 package com.example.focus_planner.network
 
+import com.example.focus_planner.data.model.Task
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
@@ -16,6 +17,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 // Definimos las solicitudes HTTP para login y registro
 //data class LoginRequest(val email: String, val password: String)
@@ -74,4 +76,78 @@ interface ApiService {
 
     //refrescar el token
     @POST("api/auth/refresh-token")
-    suspend fun refreshToken(@Body body: RequestBody): Response<LoginResponse>}
+    suspend fun refreshToken(@Body body: RequestBody): Response<LoginResponse>
+
+
+    @GET("/api/tasks")
+    suspend fun getTasks(
+        @Query("page") page: Int,
+        @Query("size") size: Int,
+        @Query("completed") completed: Boolean? = null,
+        @Header("Authorization") token: String
+    ): Response<List<Task>>
+
+    @GET("/api/tasks/{id}")
+    suspend fun getTaskDetails(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String
+    ): Response<Task>
+
+//    @GET("api/tasks")
+//    suspend fun getTasks(
+//        @Query("page") page: Int,
+//        @Query("size") size: Int,
+////        @Query("completed") completed: Boolean? = null,
+////        @Query("search") search: String? = null,
+////        @Query("status") status: String? = null,
+////        @Query("priority") priority: String? = null,
+//        @Header("Authorization") authorization: String
+//    ): Response<List<Task>>
+
+    @GET("api/tasks/filter")
+    suspend fun getFilteredTasks(
+        @Query("title") title: String? = null,
+        @Query("completed") completed: Boolean? = null,
+        @Query("dueDate") dueDate: String? = null,
+        @Query("status") status: String? = null,
+        @Query("priority") priority: String? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 10,
+        @Header("Authorization") token: String
+    ): Response<List<Task>>
+
+
+
+}
+//Tasks
+// Aquí puedes agregar las funciones para las tareas, como obtener la lista de tareas, crear una nueva tarea, etc.
+// Por ejemplo:
+//interface TaskApi {
+//
+//    @GET("/api/tasks")
+//    suspend fun getTasks(
+//        @Query("page") page: Int,
+//        @Query("size") size: Int,
+//        @Query("completed") completed: Boolean? = null,
+//        @Header("Authorization") token: String
+//    ): Response<List<Task>>
+//
+//    @GET("/api/tasks/{id}")
+//    suspend fun getTaskDetails(
+//        @Path("id") id: Long,
+//        @Header("Authorization") token: String
+//    ): Response<Task>
+//
+//    @GET("api/tasks")
+//    suspend fun getTasks(
+//        @Query("page") page: Int,
+//        @Query("size") size: Int,
+//        @Query("completed") completed: Boolean? = null,
+//        @Query("search") search: String? = null,
+//        @Query("status") status: String? = null,
+//        @Query("priority") priority: String? = null,
+//        @Header("Authorization") authorization: String
+//    ): Response<List<Task>>
+//
+//
+//}

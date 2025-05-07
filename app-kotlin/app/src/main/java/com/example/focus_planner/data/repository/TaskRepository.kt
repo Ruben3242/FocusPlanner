@@ -1,2 +1,71 @@
 package com.example.focus_planner.data.repository
 
+import com.example.focus_planner.data.model.Task
+import com.example.focus_planner.network.ApiService
+import retrofit2.Response
+import javax.inject.Inject
+
+class TaskRepository @Inject constructor(private val api: ApiService) {
+
+    suspend fun fetchTasks(
+        token: String,
+        page: Int,
+        size: Int,
+        completed: Boolean,
+        searchQuery: String?,
+        status: String?, // PENDING, COMPLETED, IN_PROGRESS
+        priority: String? // LOW, MEDIUM, HIGH
+    ): Result<List<Task>> {
+        return try {
+            val response = api.getFilteredTasks(
+                page = page,
+                size = size,
+                completed = completed,
+                title = searchQuery,
+                status = status,
+                priority = priority,
+                token = "Bearer $token"
+            )
+            if (response.isSuccessful) {
+                Result.success(response.body() ?: emptyList())
+            } else {
+                Result.failure(Exception("Error ${response.code()}: ${response.message()}"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    suspend fun getFilteredTasks(
+        token: String,
+        title: String?,
+        status: String?,
+        priority: String?,
+        completed: Boolean?,
+        page: Int,
+        size: Int
+    ): Response<List<Task>> {
+        return api.getFilteredTasks(
+            token = "Bearer $token",
+            title = title,
+            status = status,
+            priority = priority,
+            completed = completed,
+            page = page,
+            size = size
+        )
+    }
+
+
+    suspend fun fetchTaskDetails(taskId: Long, token: String): Result<Task> {
+        return try {
+            val response = api.getTaskDetails(taskId, token)
+            if (response.isSuccessful) {
+                Result.success(response.body()!!)
+            } else {
+                Result.failure(Exception("Error al obtener la tarea"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+}

@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RetrofitInstance {
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private const val BASE_URL = "https://a2dd-92-189-98-92.ngrok-free.app/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -30,4 +30,5 @@ object RetrofitInstance {
             .build()
             .create(ApiService::class.java)
     }
+
 }
