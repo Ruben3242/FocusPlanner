@@ -66,20 +66,6 @@ public class TaskService {
         return taskRepository.findByUserAndCompleted(user, completed, pageable);
     }
 
-    // Crear una nueva tarea
-//    public Task createTask(Task task) {
-//        User user = getAuthenticatedUser();
-//        if (task.getDueDate() == null) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
-//        }
-//        if (task.getPriority() == null) {
-//            task.setPriority(Priority.MEDIUM); // Establecer prioridad por defecto si no se especifica
-//        }
-//
-//        task.setUser(user);
-//        return taskRepository.save(task);
-//    }
-
     // Configurable: cantidad de días antes de la fecha de vencimiento para considerar la tarea "próxima a vencer"
     @Value("${task.reminder.daysBeforeDueDate:3}")
     private int reminderDaysBefore;
@@ -110,6 +96,10 @@ public class TaskService {
 
     public List<Task> getFilteredTasks(String title, Boolean completed, LocalDate dueDate, TaskStatus status, Priority priority, Pageable pageable) {
         Specification<Task> spec = Specification.where(null);
+        User user = getAuthenticatedUser(); // esto ya lo tienes correctamente
+
+        // 🔐 AÑADIR este filtro para que solo devuelva tareas del usuario autenticado
+        spec = spec.and((root, query, cb) -> cb.equal(root.get("user"), user));
 
         if (title != null) {
             spec = spec.and((root, query, cb) -> cb.like(cb.lower(root.get("title")), "%" + title.toLowerCase() + "%"));
@@ -133,6 +123,7 @@ public class TaskService {
 
         return taskRepository.findAll(spec, pageable).getContent();
     }
+
 
 
     public void deleteCompletedExpiredTasks() {

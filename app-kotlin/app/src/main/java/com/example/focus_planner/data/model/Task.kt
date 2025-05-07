@@ -11,9 +11,9 @@ data class Task(
     @ColumnInfo(name = "title") val title: String,
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "completed") val completed: Boolean,
-    @ColumnInfo(name = "due_date") val dueDate: Long,  // Usamos Long para las fechas
-    @ColumnInfo(name = "status") val status: String,  // Usamos String para el enum
-    @ColumnInfo(name = "priority") val priority: String = "MEDIUM",  // Usamos String para el enum
+    @ColumnInfo(name = "due_date") val dueDate: String?,  // Usamos Long para las fechas
+    @ColumnInfo(name = "status") val status: TaskStatus,  // Usamos String para el enum
+    @ColumnInfo(name = "priority") val priority: TaskPriority,  // Usamos String para el enum
     @ColumnInfo(name = "google_calendar_event_id") val googleCalendarEventId: String?,
     @ColumnInfo(name = "user_id") val userId: Long,  // Agrega esta columna
     @Relation(parentColumn = "user_id", entityColumn = "id")
