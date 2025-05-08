@@ -175,15 +175,15 @@ fun TaskListScreen(
                 .fillMaxSize()
                 .padding(16.dp)
             ) {
-                // ... tu contenido de la pantalla (botones, filtros, lista, etc.)
+
             }
 
             FloatingActionButton(
-                onClick = { /* TODO: abrir diálogo */ },
+                onClick = { navController.navigate("addTask") },
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 modifier = Modifier
-                    .align(Alignment.BottomEnd) // <-- Aquí sí es válido porque está dentro de un Box
+                    .align(Alignment.BottomEnd)
                     .padding(20.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Añadir tarea")

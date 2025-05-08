@@ -19,6 +19,7 @@ import com.example.focus_planner.ui.auth.RegisterScreen
 import com.example.focus_planner.ui.screens.calendar.CalendarScreen
 import com.example.focus_planner.ui.screens.home.MainScreen
 import com.example.focus_planner.ui.screens.profile.ProfileScreen
+import com.example.focus_planner.ui.screens.tasks.AddTaskScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
 import com.example.focus_planner.ui.screens.tasks.TaskListScreen
 import com.example.focus_planner.utils.SharedPreferencesManager
@@ -105,7 +106,16 @@ fun AppNavigation(
                 viewModel = profileViewModel,
                 token = token ?: ""
             )
-
+        }
+        composable("addTask") {
+            val taskViewModel: TaskViewModel = hiltViewModel()
+            AddTaskScreen(
+                onTaskAdded = {
+                    navController.navigate("tasks")
+                },
+                onBackClick = { navController.popBackStack() },
+                viewModel = taskViewModel,
+            )
         }
     }
 }

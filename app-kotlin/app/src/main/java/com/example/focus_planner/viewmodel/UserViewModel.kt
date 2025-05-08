@@ -93,14 +93,20 @@ class UserViewModel @Inject constructor(
 
                     if (token != null && refreshToken != null) {
                         // Guarda el token, refreshToken y la fecha de expiración
-                          SharedPreferencesManager.saveLoginData(context, token, refreshToken, expirationDate)
-//                        SharedPreferencesManager.saveLoginData(
-//                            context,
-//                            token,
-//                            refreshToken,
-//                            System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
-//                        )
+                        SharedPreferencesManager.saveLoginData(context, token, refreshToken, expirationDate)
                         Log.d("UserViewModel", "Login exitoso, token guardado.")
+                        val profileResponse = apiService.getUserProfile("Bearer $token")
+                        if (profileResponse.isSuccessful) {
+                            val user = profileResponse.body()
+                            if (user != null) {
+                                SharedPreferencesManager.saveUserId(context, user.id)
+                                Log.d("UserViewModel", "ID de usuario guardado: ${user.id}")
+                            } else {
+                                Log.e("UserViewModel", "Usuario nulo al obtener perfil")
+                            }
+                        } else {
+                            Log.e("UserViewModel", "Error al obtener perfil: ${profileResponse.code()}")
+                        }
                         onResult(true)
                     } else {
                         Log.d("UserViewModel", "Token o refreshToken nulos.")

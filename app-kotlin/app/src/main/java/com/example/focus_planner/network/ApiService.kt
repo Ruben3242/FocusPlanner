@@ -124,6 +124,11 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<Void>
 
+    @POST("/api/tasks")
+    suspend fun createTask(
+        @Body task: Task,
+        @Header("Authorization") token: String
+    ): Response<Task>
 
 
 

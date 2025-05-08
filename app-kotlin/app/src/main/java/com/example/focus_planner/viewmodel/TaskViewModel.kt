@@ -11,6 +11,7 @@ import com.example.focus_planner.data.repository.TaskRepository
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
+import com.example.focus_planner.utils.SharedPreferencesManager.getUserId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,8 +23,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
-    private val repository: TaskRepository
+    private val repository: TaskRepository,
 ) : ViewModel() {
+
 
     private val _taskDeleted = MutableStateFlow<Boolean?>(null)
     val taskDeleted: StateFlow<Boolean?> = _taskDeleted
@@ -205,4 +207,37 @@ class TaskViewModel @Inject constructor(
     fun resetTaskDeletedFlag() {
         _taskDeleted.value = null
     }
+
+    private val _creationSuccess = MutableStateFlow<Boolean?>(null)
+    val creationSuccess: StateFlow<Boolean?> = _creationSuccess
+
+    fun createTask(task: Task, context: Context) {
+        viewModelScope.launch {
+            val token = getToken(context)
+            val userId = getUserId(context)
+
+            Log.d("CreateTask", "Token obtenido: $token UserId: $userId")
+
+            if (token == null || userId == null) {
+                _creationSuccess.value = false
+                return@launch
+            }
+
+            val taskWithUser = task.copy(userId = userId)
+
+            val response = repository.createTask(taskWithUser, token)
+            if (response.isSuccessful) {
+                _creationSuccess.value = true
+            } else {
+                _creationSuccess.value = false
+                Log.e("CreateTask", "Error en la respuesta: ${response.code()} ${response.message()}")
+
+            }
+        }
+    }
+
+    fun resetState() {
+        _creationSuccess.value = null
+    }
+
 }

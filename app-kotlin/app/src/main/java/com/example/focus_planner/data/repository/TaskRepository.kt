@@ -77,4 +77,9 @@ class TaskRepository @Inject constructor(private val api: ApiService) {
             false
         }
     }
+
+    suspend fun createTask(task: Task, token: String): Response<Task> {
+        return api.createTask(task, "Bearer $token")
+    }
+
 }

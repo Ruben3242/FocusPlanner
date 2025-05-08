@@ -2,6 +2,8 @@ package com.example.focus_planner.utils
 
 import android.content.Context
 import android.util.Log
+import com.auth0.jwt.JWT
+import com.auth0.jwt.interfaces.DecodedJWT
 import kotlin.math.E
 
 object SharedPreferencesManager {
@@ -96,6 +98,8 @@ object SharedPreferencesManager {
         editor.remove(EXPIRATION_KEY)
         editor.apply()
     }
+
+
     // Guardar ID de usuario
     fun saveUserId(context: Context, userId: Long) {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

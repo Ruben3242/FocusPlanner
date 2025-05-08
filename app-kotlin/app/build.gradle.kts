@@ -64,6 +64,9 @@ dependencies {
     // Material 3
     implementation(libs.material3)
 
+    implementation ("com.auth0:java-jwt:3.18.2")
+
+
     // ViewModel y LiveData
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
