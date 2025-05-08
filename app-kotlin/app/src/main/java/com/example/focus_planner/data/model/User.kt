@@ -3,6 +3,7 @@ package com.example.focus_planner.data.model
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.focus_planner.data.model.task.Task
 
 @Entity(tableName = "app_user")
 data class User(

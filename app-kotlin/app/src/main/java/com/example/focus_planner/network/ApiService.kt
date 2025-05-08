@@ -1,6 +1,6 @@
 package com.example.focus_planner.network
 
-import com.example.focus_planner.data.model.Task
+import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
@@ -9,7 +9,6 @@ import com.example.focus_planner.model.LoginResponse
 import com.example.focus_planner.model.RegisterRequest
 import com.example.focus_planner.model.RegisterResponse
 import okhttp3.RequestBody
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -128,6 +127,19 @@ interface ApiService {
     suspend fun createTask(
         @Body task: Task,
         @Header("Authorization") token: String
+    ): Response<Task>
+
+    @GET("/api/tasks/{id}")
+    suspend fun getTaskById(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String
+    ): Response<Task>
+
+    @PUT("/api/tasks/{id}")
+    suspend fun updateTask(
+        @Path("id") id: Long,
+        @Header("Authorization") token: String,
+        @Body task: Task
     ): Response<Task>
 
 

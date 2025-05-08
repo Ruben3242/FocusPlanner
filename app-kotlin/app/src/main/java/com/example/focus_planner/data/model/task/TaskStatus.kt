@@ -1,4 +1,4 @@
-package com.example.focus_planner.data.model
+package com.example.focus_planner.data.model.task
 
 enum class TaskStatus(val value: String) {
     PENDING("PENDING"),

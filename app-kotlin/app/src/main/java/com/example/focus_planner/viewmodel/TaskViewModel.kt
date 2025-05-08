@@ -1,15 +1,12 @@
 package com.example.focus_planner.viewmodel
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.focus_planner.data.model.Task
-import com.example.focus_planner.data.model.TaskPriority
-import com.example.focus_planner.data.model.TaskStatus
+import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.repository.TaskRepository
-import com.example.focus_planner.network.ApiService
-import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import com.example.focus_planner.utils.SharedPreferencesManager.getUserId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,12 +15,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.time.delay
 import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
-    private val repository: TaskRepository,
+    private val repository: TaskRepository
 ) : ViewModel() {
 
 
@@ -238,6 +234,45 @@ class TaskViewModel @Inject constructor(
 
     fun resetState() {
         _creationSuccess.value = null
+    }
+
+
+    private val _taskDetail = MutableStateFlow<Task?>(null)
+    val taskDetail: StateFlow<Task?> = _taskDetail
+
+    fun loadTaskDetail(taskId: Long, context: Context) {
+        viewModelScope.launch {
+            val token = getToken(context)
+            val task = token?.let { repository.getTaskById(taskId, it) }
+            _taskDetail.value = task
+        }
+    }
+
+    fun markTaskAsCompleted(context: Context) {
+        viewModelScope.launch {
+            _taskDetail.value?.let { currentTask ->
+                val token = getToken(context)
+                val updatedTask = currentTask.copy(completed = true)
+                if (token != null) {
+                    repository.updateTask(updatedTask, token)?.let {
+                        _taskDetail.value = it
+                    }
+                }
+            }
+        }
+    }
+    fun updateTaskDueDate(taskId: Long, newDate: String, context: Context) {
+        viewModelScope.launch {
+            val token = getToken(context)
+            if (token != null) {
+                val task = repository.getTaskById(taskId, token)
+                if (task != null) {
+                    val updatedTask = task.copy(dueDate = newDate)
+                    repository.updateTask(updatedTask, token)
+                    _taskDetail.value = updatedTask
+                }
+            }
+        }
     }
 
 }

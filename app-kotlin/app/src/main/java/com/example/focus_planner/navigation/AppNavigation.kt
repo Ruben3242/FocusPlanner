@@ -10,10 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.focus_planner.data.model.TaskPriority
-import com.example.focus_planner.data.model.TaskStatus
+import androidx.navigation.navArgument
 import com.example.focus_planner.ui.auth.LoginScreen
 import com.example.focus_planner.ui.auth.RegisterScreen
 import com.example.focus_planner.ui.screens.calendar.CalendarScreen
@@ -70,31 +70,12 @@ fun AppNavigation(
             )
         }
 
-        composable("taskDetail/{taskId}") { backStackEntry ->
+        composable(
+            "taskDetailScreen/{taskId}",
+            arguments = listOf(navArgument("taskId") { type = NavType.StringType })
+        ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getString("taskId")
-
-            // Recupera el token desde SharedPreferences
-            val context = LocalContext.current
-            val sharedPreferences = context.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-            val token = sharedPreferences.getString("token", null)
-
-            if (token != null) {
-                taskId?.let {
-                    TaskDetailScreen(
-                        navController = navController,
-                        taskId = taskId,
-                        token = "Bearer $token" // Asegúrate de anteponer "Bearer " si tu API lo necesita
-                    )
-                }
-            } else {
-                // Maneja el caso en que el token no esté disponible
-                Log.e("TaskDetailScreen", "Token no disponible")
-                // Puedes mostrar un mensaje de error o redirigir al usuario a la pantalla de inicio de sesión
-                navController.navigate("login") {
-                    popUpTo("login") { inclusive = true }
-                }
-
-            }
+            TaskDetailScreen(navController = navController, taskId = taskId)
         }
 
         composable("calendar") { CalendarScreen() }

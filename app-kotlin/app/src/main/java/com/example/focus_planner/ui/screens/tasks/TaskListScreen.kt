@@ -1,20 +1,15 @@
 package com.example.focus_planner.ui.screens.tasks
 
-import android.graphics.drawable.GradientDrawable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -25,22 +20,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.room.Delete
-import com.example.focus_planner.data.model.Task
-import com.example.focus_planner.data.model.TaskPriority
-import com.example.focus_planner.data.model.TaskStatus
+import com.example.focus_planner.data.model.task.Task
+import com.example.focus_planner.data.model.task.TaskPriority
+import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.viewmodel.TaskViewModel
 
 
@@ -145,7 +135,8 @@ fun TaskListScreen(
                     onNavigateToDetails = { id ->
                         navController.navigate("taskDetail/$id")
                     },
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    modifier = Modifier.padding(bottom = 8.dp),
+                    navController = navController
                 )
             }
 
@@ -199,7 +190,8 @@ fun TaskCard(
     task: Task,
     onDeleteById: (Long) -> Unit,
     onNavigateToDetails: (Long) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navController: NavController
 ) {
     var offsetX by remember { mutableStateOf(0f) }
     var isExpanded by remember { mutableStateOf(false) }
@@ -317,7 +309,7 @@ fun TaskCard(
                         Text(text = "Estado: ${task.status}")
                         Text(text = "Prioridad: ${task.priority}")
                         Button(
-                            onClick = { onNavigateToDetails(task.id) },
+                            onClick = { navController.navigate("taskDetailScreen/${task.id}") },
                             modifier = Modifier
                                 .align(Alignment.End)
                                 .padding(top = 8.dp)

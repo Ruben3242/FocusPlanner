@@ -1,6 +1,6 @@
 package com.example.focus_planner.data.repository
 
-import com.example.focus_planner.data.model.Task
+import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.network.ApiService
 import retrofit2.Response
 import javax.inject.Inject
@@ -82,4 +82,13 @@ class TaskRepository @Inject constructor(private val api: ApiService) {
         return api.createTask(task, "Bearer $token")
     }
 
+    suspend fun getTaskById(taskId: Long, token: String): Task? {
+        val response = api.getTaskById(taskId, "Bearer $token")
+        return if (response.isSuccessful) response.body() else null
+    }
+
+    suspend fun updateTask(task: Task, token: String): Task? {
+        val response = api.updateTask(task.id, "Bearer $token", task)
+        return if (response.isSuccessful) response.body() else null
+    }
 }

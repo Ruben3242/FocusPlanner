@@ -10,7 +10,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedTextField
@@ -24,11 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
-import com.example.focus_planner.data.model.Task
-import com.example.focus_planner.data.model.TaskPriority
-import com.example.focus_planner.data.model.TaskStatus
+import com.example.focus_planner.data.model.task.Task
+import com.example.focus_planner.data.model.task.TaskPriority
+import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.utils.SharedPreferencesManager
-import com.example.focus_planner.utils.SharedPreferencesManager.getUserId
 import com.example.focus_planner.viewmodel.TaskViewModel
 import java.util.Calendar
 
