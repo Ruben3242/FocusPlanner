@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public class TaskController {
 
     // Crear una tarea
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+    public ResponseEntity<Task> createTask(@RequestBody Task task) throws IOException {
         return ResponseEntity.ok(taskService.createTask(task));
     }
 
@@ -72,13 +73,13 @@ public class TaskController {
 
     // Actualizar una tarea
     @PutMapping("/{id}")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) {
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task task) throws IOException {
         return ResponseEntity.ok(taskService.updateTask(id, task));
     }
 
     // Eliminar una tarea
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTask(@PathVariable Long id) throws IOException {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }

@@ -1,4 +1,4 @@
-package com.example.tfg.GogleCalendar.Auth;
+package com.example.tfg.GogleCalendar.Auth.Permisos;
 
 import com.google.api.services.calendar.model.Event;
 import org.springframework.http.ResponseEntity;
@@ -20,21 +20,23 @@ public class CalendarController {
 
     @GetMapping("/events")
     public List<Event> getEvents() throws GeneralSecurityException, IOException {
-        return googleCalendarService.getUpcomingEvents();
+//        return googleCalendarService.getUpcomingEvents();
+        return List.of();
     }
 
     @PostMapping("/events")
     public ResponseEntity<Event> createEvent(@RequestBody Map<String, String> request) {
-        try {
-            Event event = googleCalendarService.createEvent(
-                    request.get("summary"),
-                    request.get("description"),
-                    request.get("startDateTime"),
-                    request.get("endDateTime")
-            );
-            return ResponseEntity.ok(event);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+//        try {
+//            Event event = googleCalendarService.createEvent(
+//                    request.get("summary"),
+//                    request.get("description"),
+//                    request.get("startDateTime"),
+//                    request.get("endDateTime")
+//            );
+//            return ResponseEntity.ok(event);
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().build();
+//        }
+        return null;
     }
 }

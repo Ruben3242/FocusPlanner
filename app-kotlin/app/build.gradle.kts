@@ -56,6 +56,7 @@ android {
 dependencies {
     implementation(libs.androidx.datastore.core.android)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.espresso.core)
     // Jetpack Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.03.00")
     implementation(composeBom)
@@ -63,6 +64,8 @@ dependencies {
 
     // Material 3
     implementation(libs.material3)
+    implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
 
     implementation ("com.auth0:java-jwt:3.18.2")
 

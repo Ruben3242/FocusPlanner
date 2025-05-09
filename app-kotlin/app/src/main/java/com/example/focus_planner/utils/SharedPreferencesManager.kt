@@ -40,6 +40,7 @@ object SharedPreferencesManager {
             .putString(TOKEN_KEY, token)
             .putString(REFRESH_TOKEN_KEY, refreshToken)
             .putLong(EXPIRATION_KEY, tokenExpiration)
+//            .putLong(KEY_USER_ID, 0L) // Guardar ID de usuario como 0L por defecto
             .putLong(LOGIN_TIMESTAMP_KEY, System.currentTimeMillis())
             .apply()
     }

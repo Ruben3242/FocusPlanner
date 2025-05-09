@@ -72,7 +72,7 @@ class TaskViewModel @Inject constructor(
         currentToken = token
         refreshTasks()
     }
-    private fun refreshTasks() {
+    fun refreshTasks() {
         _page.value = 0
     }
 
@@ -274,5 +274,12 @@ class TaskViewModel @Inject constructor(
             }
         }
     }
+
+
+
+    fun resetTaskDeleted() {
+        _taskDeleted.value = null
+    }
+
 
 }

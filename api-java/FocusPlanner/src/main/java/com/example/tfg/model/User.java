@@ -5,6 +5,7 @@ import com.example.tfg.enums.Role;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 
@@ -54,6 +55,11 @@ public class User implements UserDetails {
     @Column(name = "remove_completed_expired_tasks")
     private boolean removeCompletedExpiredTasks;
 
+    private String googleAccessToken;
+    private Instant googleAccessTokenExpiry;
+    private String googleRefreshToken;
+
+
     // Getters y setters
 
     @Override
@@ -80,6 +86,7 @@ public class User implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
+
 }
 
 

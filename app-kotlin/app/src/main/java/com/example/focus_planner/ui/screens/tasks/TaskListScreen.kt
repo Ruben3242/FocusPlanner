@@ -47,7 +47,9 @@ fun TaskListScreen(
     LaunchedEffect(true) {
         viewModel.setToken(token)
         viewModel.initializeFiltering()
+        viewModel.refreshTasks()
     }
+
     val context = LocalContext.current
     val tasks by viewModel.tasks.collectAsState()
     var searchQuery by remember { mutableStateOf("") }

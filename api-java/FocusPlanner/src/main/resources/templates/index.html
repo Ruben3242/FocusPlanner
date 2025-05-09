@@ -7,6 +7,28 @@
 </head>
 <body>
 <h1>Bienvenido a la app</h1>
-<a href="/oauth2/authorization/google">Iniciar sesión con Google</a>
+
+<a id="google-login-btn" href="/oauth2/authorization/google"
+   style="font-size: 18px; text-decoration: none; color: white; background-color: #4285F4; padding: 10px 20px; border-radius: 5px;">
+    Iniciar sesión con Google
+</a>
+
+<!--<script>-->
+<!--    // ✅ Reemplaza estos valores con los reales-->
+<!--    const clientId = "TU_CLIENT_ID"; // desde Google Cloud-->
+<!--    const scope = "https://www.googleapis.com/auth/calendar";-->
+<!--    const userId = "123"; // Obtén esto dinámicamente si puedes-->
+
+<!--    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");-->
+<!--    authUrl.searchParams.set("client_id", clientId);-->
+<!--    authUrl.searchParams.set("response_type", "code");-->
+<!--    authUrl.searchParams.set("scope", scope);-->
+<!--    authUrl.searchParams.set("access_type", "offline");-->
+<!--    authUrl.searchParams.set("prompt", "consent");-->
+<!--    authUrl.searchParams.set("state", userId); // <- Aquí guardas el userId temporalmente-->
+
+<!--    document.getElementById("google-login-btn").href = authUrl.toString();-->
+<!--</script>-->
+
 </body>
 </html>

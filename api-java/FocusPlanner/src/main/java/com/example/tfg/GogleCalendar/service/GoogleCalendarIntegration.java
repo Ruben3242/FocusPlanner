@@ -10,6 +10,7 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.auth.http.HttpCredentialsAdapter;
+import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.auth.oauth2.ServiceAccountCredentials;
 import org.springframework.stereotype.Service;
@@ -28,11 +29,8 @@ public class GoogleCalendarIntegration {
     private static final String CALENDAR_ID = "focusplanner.welcome@gmail.com"; // Usar el correo correcto del calendario
 
 
-    private Calendar getCalendarService() throws IOException, GeneralSecurityException {
-        GoogleCredentials credentials = ServiceAccountCredentials
-                .fromStream(new FileInputStream(SERVICE_ACCOUNT_FILE))
-                .createScoped(Collections.singleton(CalendarScopes.CALENDAR));
-
+    public Calendar getCalendarService(String accessToken) throws GeneralSecurityException, IOException {
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(accessToken, null));
         return new Calendar.Builder(
                 GoogleNetHttpTransport.newTrustedTransport(),
                 JSON_FACTORY,
@@ -41,9 +39,10 @@ public class GoogleCalendarIntegration {
                 .build();
     }
 
+
     // 📌 Crear un evento en Google Calendar cuando se añade una nueva tarea
-    public String addEvent(Task task) throws IOException, GeneralSecurityException {
-        Calendar service = getCalendarService();
+    public String addEvent(Task task, String accessToken) throws IOException, GeneralSecurityException {
+        Calendar service = getCalendarService(accessToken);
 
         Event event = new Event()
                 .setSummary(task.getTitle())
@@ -55,14 +54,15 @@ public class GoogleCalendarIntegration {
                         .setDateTime(new DateTime(task.getDueDate().toString() + "T10:00:00-00:00"))
                         .setTimeZone("UTC"));
 
-        event = service.events().insert(CALENDAR_ID, event).execute();
-        return event.getId(); // Guardar este ID en la base de datos
+        event = service.events().insert("primary", event).execute(); // Usamos "primary" para el calendario del usuario
+        return event.getId();
     }
 
+
     // 📌 Actualizar un evento en Google Calendar al modificar una tarea
-    public void updateEvent(String eventId, Task task) throws IOException, GeneralSecurityException {
-        Calendar service = getCalendarService();
-        Event event = service.events().get(CALENDAR_ID, eventId).execute();
+    public void updateEvent(String eventId, Task task, String accessToken) throws IOException, GeneralSecurityException {
+        Calendar service = getCalendarService(accessToken);
+        Event event = service.events().get("primary", eventId).execute();
 
         event.setSummary(task.getTitle());
         event.setDescription(task.getDescription());
@@ -73,21 +73,21 @@ public class GoogleCalendarIntegration {
                 .setDateTime(new DateTime(task.getDueDate().toString() + "T10:00:00-00:00"))
                 .setTimeZone("UTC"));
 
-        service.events().update(CALENDAR_ID, eventId, event).execute();
+        service.events().update("primary", eventId, event).execute();
     }
 
     // 📌 Eliminar un evento en Google Calendar cuando se borra una tarea
-    public void deleteEvent(String eventId) throws IOException, GeneralSecurityException {
-        Calendar service = getCalendarService();
-        service.events().delete(CALENDAR_ID, eventId).execute();
+    public void deleteEvent(String eventId, String accessToken) throws IOException, GeneralSecurityException {
+        Calendar service = getCalendarService(accessToken);
+        service.events().delete("primary", eventId).execute();
     }
 
     // 📌 Obtener la lista de eventos en Google Calendar
-    public void listUpcomingEvents() throws IOException, GeneralSecurityException {
-        Calendar service = getCalendarService();
+    public void listUpcomingEvents(String accessToken) throws IOException, GeneralSecurityException {
+        Calendar service = getCalendarService(accessToken);
         DateTime now = new DateTime(System.currentTimeMillis());
 
-        var events = service.events().list(CALENDAR_ID)
+        var events = service.events().list("primary")
                 .setMaxResults(10)
                 .setTimeMin(now)
                 .setOrderBy("startTime")

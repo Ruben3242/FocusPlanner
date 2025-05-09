@@ -123,4 +123,14 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
+    public User registerOrUpdateUser(String email, String firstName, String lastName) {
+        User user = userRepository.findByEmail(email).orElse(new User());
+        user.setEmail(email);
+        user.setFirstname(firstName);
+        user.setLastname(lastName);
+
+        // Si el usuario ya existe, lo actualizamos, sino lo creamos.
+        return userRepository.save(user);
+    }
+
 }

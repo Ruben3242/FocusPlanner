@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import com.example.focus_planner.viewmodel.TaskViewModel
 import java.util.*
 import android.app.DatePickerDialog
+import com.example.focus_planner.utils.SharedPreferencesManager
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -66,7 +67,8 @@ fun TaskDetailScreen(
     }
 
     task?.let { task ->
-        Log.d("TaskDetailScreen", "Tarea cargada: ${task.title} - ${task.description} - ${task.dueDate} - ${task.completed} - ${task.googleCalendarEventId} - ${task.status} - ${task.priority} - ${task.userId}")
+        val userId = SharedPreferencesManager.getUserId(context)
+        Log.d("TaskDetailScreen", "Tarea cargada: ${task.title} - ${task.description} - ${task.dueDate} - ${task.completed} - ${task.googleCalendarEventId} - ${task.status} - ${task.priority} - $userId")
         Spacer(modifier = Modifier.height(40.dp))
         Card(
             modifier = Modifier
@@ -213,14 +215,20 @@ fun TaskDetailScreen(
 //                    }
 //                }
 
+                val taskDeleted by viewModel.taskDeleted.collectAsState()
+                LaunchedEffect(taskDeleted) {
+                    if (taskDeleted == true) {
+                        navController.navigate("tasks") {
+                            popUpTo("tasks") { inclusive = true }
+                        }
+                        viewModel.resetTaskDeleted() // esta función la crearemos en el paso 2
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
                     onClick = {
                         viewModel.deleteTask(context, task.id)
-                        navController.navigate("tasks") {
-                            popUpTo("tasks") { inclusive = true }
-                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
                     modifier = Modifier

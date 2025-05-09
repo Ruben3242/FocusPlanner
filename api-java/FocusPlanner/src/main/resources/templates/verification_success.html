@@ -6,59 +6,169 @@
     <title>Cuenta Verificada</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f2fbf5;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+          font-family: Arial, sans-serif;
+          background-color: #f2fbf5;
+          margin: 0;
+          padding: 0;
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
         }
 
         .card {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 90%;
-            width: 400px;
-            margin-top: 80px; /* Margen fijo superior */
-            text-align: center;
+          background-color: white;
+          padding: 30px;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          max-width: 90%;
+          width: 400px;
+          text-align: center;
         }
 
         h1 {
-            color: #4CAF50;
-            font-size: 24px;
-            margin-bottom: 15px;
+          color: #4CAF50;
+          font-size: 26px;
+          margin-bottom: 15px;
         }
 
         p {
-            margin: 10px 0;
+          margin: 10px 0;
+          font-size: 16px;
+        }
+
+        .button {
+          margin-top: 20px;
+          display: inline-block;
+          padding: 12px 20px;
+          font-size: 16px;
+          border-radius: 6px;
+          text-decoration: none;
+          background-color: #4285F4;
+          color: white;
+          transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+          background-color: #3367d6;
+        }
+
+        .info-link {
+          margin-top: 12px;
+          display: block;
+          font-size: 14px;
+          color: #555;
+          cursor: pointer;
+          text-decoration: underline;
+        }
+
+        /* Modal */
+        .modal {
+          display: none;
+          position: fixed;
+          z-index: 1000;
+          left: 0; top: 0;
+          width: 100%; height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+          background-color: white;
+          margin: 10% auto;
+          padding: 25px;
+          border-radius: 10px;
+          width: 80%;
+          max-width: 450px;
+          text-align: left;
+          position: relative;
+        }
+        .modal-content ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        .modal-content li {
+            margin-bottom: 12px;
             font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .modal h2 {
+          margin-top: 0;
+        }
+
+        .close {
+          position: absolute;
+          top: 10px;
+          right: 15px;
+          font-size: 22px;
+          font-weight: bold;
+          color: #999;
+          cursor: pointer;
+        }
+
+        .close:hover {
+          color: #000;
         }
 
         @media (max-width: 480px) {
-            .card {
-                padding: 20px;
-                width: 75%;
-            }
+          .card {
+            padding: 20px;
+            width: 85%;
+          }
 
-            h1 {
-                font-size: 20px;
-            }
+          h1 {
+            font-size: 22px;
+          }
 
-            p {
-                font-size: 14px;
-            }
+          p, .button {
+            font-size: 14px;
+          }
+
         }
     </style>
 </head>
 <body>
+
 <div class="card">
     <h1>✅ Cuenta Verificada</h1>
     <p>Tu cuenta ha sido verificada con éxito.</p>
-    <!-- <a href="focusplanner://login">Iniciar sesión en la app</a> -->
+    <p>¿Quieres activar la integración con Google Calendar?</p>
+
+    <a class="button" href="https://6d1a-92-189-98-92.ngrok-free.app/oauth2/authorization/google">
+        Activar Google Calendar
+    </a>
+
+    <span class="info-link" onclick="document.getElementById('calendarModal').style.display='block'">
+    ¿Qué incluye la integración con Google Calendar?
+  </span>
 </div>
+
+<!-- Modal -->
+<div id="calendarModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('calendarModal').style.display='none'">&times;</span>
+        <h2>Integración con Google Calendar</h2>
+        <ul>
+            <li>📅 Crear tareas como eventos en tu calendario.</li>
+            <li>✏️ Editar tareas y sincronizarlas automáticamente.</li>
+            <li>🗑️ Eliminar eventos desde la app.</li>
+            <li>👁️ Ver solo las tareas creadas por FocusPlanner, no afecta a tus otros eventos.</li>
+            <li>🔔 Recibir notificaciones directamente desde Google Calendar como recordatorios.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Cierra el modal si se hace clic fuera del contenido
+    window.onclick = function(event) {
+      const modal = document.getElementById('calendarModal');
+      if (event.target === modal) {
+        modal.style.display = "none";
+      }
+    }
+</script>
+
 </body>
 </html>

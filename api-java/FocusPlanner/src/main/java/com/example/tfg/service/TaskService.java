@@ -1,5 +1,7 @@
 package com.example.tfg.service;
 
+import com.example.tfg.GogleCalendar.Auth.Permisos.GoogleCalendarService;
+import com.example.tfg.GogleCalendar.Auth.Permisos.GoogleOAuthService;
 import com.example.tfg.GogleCalendar.service.GoogleCalendarIntegration;
 import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +37,11 @@ public class TaskService {
     private final UserRepository userRepository;
     @Autowired
     private final GoogleCalendarIntegration googleCalendarIntegration;
+    @Autowired
+    private final GoogleOAuthService googleOAuthService;
+    @Autowired
+    private final GoogleCalendarService googleCalendarService;
+
 
     // Obtener el usuario autenticado
     private User getAuthenticatedUser() {
@@ -185,15 +193,15 @@ public class TaskService {
 //        taskRepository.delete(task);
 //    }
 
-    public Task createTask(Task task) {
+    public Task createTask(Task task) throws IOException {
         User user = getAuthenticatedUser();
         task.setUser(user);
         Task savedTask = taskRepository.save(task);
 
         try {
-            String eventId = googleCalendarIntegration.addEvent(savedTask);
+            String eventId = googleCalendarService.createCalendarEvent(savedTask, user);
             savedTask.setGoogleCalendarEventId(eventId);
-            taskRepository.save(savedTask);
+            taskRepository.save(savedTask); // actualizar con ID del evento
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -201,37 +209,41 @@ public class TaskService {
         return savedTask;
     }
 
-    public Task updateTask(Long id, Task taskDetails) {
+    public Task updateTask(Long id, Task updatedTask) throws IOException {
         User user = getAuthenticatedUser();
-        Task task = taskRepository.findByIdAndUser(id, user)
+        Task existingTask = taskRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
 
-        task.setTitle(taskDetails.getTitle());
-        task.setDescription(taskDetails.getDescription());
-        task.setCompleted(taskDetails.isCompleted());
-        task.setDueDate(taskDetails.getDueDate());
+        existingTask.setTitle(updatedTask.getTitle());
+        existingTask.setDescription(updatedTask.getDescription());
+        existingTask.setCompleted(updatedTask.isCompleted());
+        existingTask.setDueDate(updatedTask.getDueDate());
+        existingTask.setStatus(updatedTask.getStatus());
+        existingTask.setPriority(updatedTask.getPriority());
+        existingTask.setGoogleCalendarEventId(updatedTask.getGoogleCalendarEventId());
 
-        Task updatedTask = taskRepository.save(task);
+        Task savedTask = taskRepository.save(existingTask);
 
         try {
-            if (updatedTask.getGoogleCalendarEventId() != null) {
-                googleCalendarIntegration.updateEvent(updatedTask.getGoogleCalendarEventId(), updatedTask);
+            if (user.getGoogleAccessToken() != null && savedTask.getGoogleCalendarEventId() != null) {
+                googleCalendarService.updateCalendarEvent(savedTask, user);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return updatedTask;
+        return savedTask;
     }
 
-    public void deleteTask(Long id) {
+
+    public void deleteTask(Long id) throws IOException {
         User user = getAuthenticatedUser();
         Task task = taskRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
 
         try {
-            if (task.getGoogleCalendarEventId() != null) {
-                googleCalendarIntegration.deleteEvent(task.getGoogleCalendarEventId());
+            if (user.getGoogleAccessToken() != null && task.getGoogleCalendarEventId() != null) {
+                googleCalendarService.deleteCalendarEvent(task.getGoogleCalendarEventId(), user);
             }
         } catch (Exception e) {
             e.printStackTrace();
