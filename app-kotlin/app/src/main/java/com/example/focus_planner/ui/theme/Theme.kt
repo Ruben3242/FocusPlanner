@@ -33,10 +33,10 @@ private val DarkColorScheme = darkColorScheme(
     primary = BluePrimary,
     onPrimary = LightText,
     secondary = BlueSecondary,
-    background = Color.Black,
-    surface = Color.DarkGray,
-    onBackground = LightText,
-    onSurface = LightText,
+    background = GrayBackground,
+    surface = Color.White,
+    onBackground = DarkText,
+    onSurface = DarkText,
 )
 
 @Composable

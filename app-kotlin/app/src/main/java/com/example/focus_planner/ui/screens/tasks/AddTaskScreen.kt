@@ -12,10 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -23,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
@@ -86,20 +89,28 @@ fun AddTaskScreen(
                 color = androidx.compose.ui.graphics.Color.Black
             )
         }
-
+        @OptIn(ExperimentalMaterial3Api::class)
+        val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
+            cursorColor = MaterialTheme.colorScheme.primary,
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = Color.Gray
+        )
         OutlinedTextField(
             value = title,
             onValueChange = { title = it },
             label = { Text("Título") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = textFieldColors
         )
 
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
             label = { Text("Descripción") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = textFieldColors
         )
+
 
         DatePickerField(
             selectedDate = dueDate,

@@ -76,7 +76,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // Redirigir al frontend con ambos tokens (ten cuidado con exponer el token de Google)
         String redirectUrl = String.format(
-                "https://0522-92-189-98-92.ngrok-free.app/oauth2/success.html?token=%s&googleToken=%s",
+                "https://4734-92-189-98-92.ngrok-free.app/oauth2/success.html?token=%s&googleToken=%s",
                 jwt, googleAccessToken);
 
         redirectStrategy.sendRedirect(request, response, redirectUrl);

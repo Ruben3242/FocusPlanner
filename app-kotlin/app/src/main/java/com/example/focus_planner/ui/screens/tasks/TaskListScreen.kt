@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +33,7 @@ import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.viewmodel.TaskViewModel
+import androidx.compose.material3.TextFieldDefaults
 
 
 @Composable
@@ -59,6 +61,13 @@ fun TaskListScreen(
     var expanded by remember { mutableStateOf(false) }
 
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
+        cursorColor = MaterialTheme.colorScheme.primary,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedBorderColor = Color.Gray
+    )
+
 
     Column(modifier = modifier
         .fillMaxSize()
@@ -70,17 +79,27 @@ fun TaskListScreen(
         }
 
         Spacer(modifier = Modifier.height(8.dp))
+        @Composable
+        fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
+            OutlinedTextField(
+                value = value,
+                onValueChange = onValueChange,
+                label = { Text(label) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF1E88E5),
+                    unfocusedBorderColor = Color(0xFF90A4AE),
+                    cursorColor = Color.Black,
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+                    focusedLabelColor = Color(0xFF1E88E5),
+                    unfocusedLabelColor = Color.Gray
+                )
+            )
+        }
 
-        // Barra de búsqueda
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = {
-                searchQuery = it
-                viewModel.onSearchQueryChange(it)
-            },
-            label = { Text("Buscar por título") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        styledTextField(searchQuery, { searchQuery = it }, "Buscar por título")
+
 
         Spacer(modifier = Modifier.height(8.dp))
 

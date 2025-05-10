@@ -160,7 +160,7 @@ fun ProfileScreen(
                 onClick = {
                     val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
                         data =
-                            android.net.Uri.parse("https://0522-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
+                            android.net.Uri.parse("https://4734-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
                     }
                     context.startActivity(intent)
                 },

@@ -2,6 +2,7 @@ package com.example.focus_planner.navigation
 
 import android.content.Context
 import android.util.Log
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -18,6 +19,7 @@ import com.example.focus_planner.ui.auth.LoginScreen
 import com.example.focus_planner.ui.auth.RegisterScreen
 import com.example.focus_planner.ui.screens.calendar.CalendarScreen
 import com.example.focus_planner.ui.screens.home.MainScreen
+import com.example.focus_planner.ui.screens.organizacion.PomodoroScreen
 import com.example.focus_planner.ui.screens.profile.ProfileScreen
 import com.example.focus_planner.ui.screens.tasks.AddTaskScreen
 import com.example.focus_planner.ui.screens.tasks.EditTaskScreen
@@ -105,6 +107,11 @@ fun AppNavigation(
                 taskId = taskId,
                 onTaskUpdated = { navController.popBackStack() },
                 onBackClick = { navController.popBackStack() }
+            )
+        }
+        composable("pomodoro") {
+            PomodoroScreen(
+                navController = navController,
             )
         }
 

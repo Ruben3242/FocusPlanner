@@ -42,6 +42,7 @@ fun MainScreen(onNavigate: (String) -> Unit) {
         MenuCard("📋 Mis Tareas", "tasks", onNavigate)
         MenuCard("📅 Calendario", "calendar", onNavigate)
         MenuCard("👤 Perfil", "profile", onNavigate)
+        MenuCard("⏳ Pomodoro", "pomodoro", onNavigate)
         // Cerrar sesión
         MenuCard("🔒 Cerrar Sesión", "login",
             onNavigate = {
