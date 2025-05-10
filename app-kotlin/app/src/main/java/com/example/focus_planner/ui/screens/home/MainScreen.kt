@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
 import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
@@ -23,16 +24,18 @@ fun MainScreen(onNavigate: (String) -> Unit) {
     LaunchedEffect(Unit) {
         TokenManager.checkTokenAndRefresh(context, NavController(context))
     }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "FocusPlanner",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.padding(bottom = 20.dp)
+            style = MaterialTheme.typography.headlineLarge.copy(color = Color(0xFF6200EE)),
+            modifier = Modifier.padding(bottom = 32.dp)
         )
 
         // Tarjetas del menú
@@ -57,6 +60,7 @@ fun MenuCard(title: String, route: String, onNavigate: (String) -> Unit) {
             .padding(vertical = 8.dp)
             .clickable { onNavigate(route) },
         shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp), // Agregada sombra para dar un efecto de profundidad
         colors = CardDefaults.cardColors(containerColor = Color(0xFF6200EE))
     ) {
         Text(
@@ -64,15 +68,16 @@ fun MenuCard(title: String, route: String, onNavigate: (String) -> Unit) {
             modifier = Modifier
                 .padding(20.dp)
                 .fillMaxWidth(),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = Color.White,
             textAlign = TextAlign.Center
         )
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewMainScreen() {
-//    MainScreen(onNavigate = {}, navController = NavController(LocalContext.current)) // Proporciona un NavController de prueba
-//}
+// Preview de la pantalla principal
+@Preview(showBackground = true)
+@Composable
+fun PreviewMainScreen() {
+    MainScreen(onNavigate = {}) // Navegación ficticia para vista previa
+}

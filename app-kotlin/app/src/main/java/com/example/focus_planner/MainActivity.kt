@@ -6,7 +6,6 @@ import androidx.compose.runtime.Composable
 
 import androidx.navigation.compose.rememberNavController
 
-import com.example.focus_planner.ui.theme.Focus_plannerTheme
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -21,6 +20,7 @@ import com.example.focus_planner.data.repository.UserRepository
 import com.example.focus_planner.navigation.AppNavigation
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.network.RetrofitInstance
+import com.example.focus_planner.ui.theme.FocusPlannerTheme
 import com.example.focus_planner.viewmodel.UserViewModel
 import com.example.focus_planner.viewmodel.UserViewModelFactory
 import com.jakewharton.threetenabp.AndroidThreeTen
@@ -40,7 +40,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
-            AppNavigation(navController = navController, userViewModel = userViewModel)        }
+            FocusPlannerTheme{
+                AppNavigation(navController = navController, userViewModel = userViewModel)
+            }
+
+        }
     }
 }
 

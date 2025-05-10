@@ -72,7 +72,7 @@ fun TaskListScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Barra de búsqueda
-        TextField(
+        OutlinedTextField(
             value = searchQuery,
             onValueChange = {
                 searchQuery = it
@@ -248,7 +248,7 @@ fun TaskCard(
                     .padding(start = 16.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-                IconButton(onClick = { onNavigateToDetails(task.id) }) {
+                IconButton(onClick = { navController.navigate("editTask/${task.id}") }) {
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Ver/Editar tarea",
@@ -340,26 +340,39 @@ fun DropdownSelector(
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        TextField(
+        OutlinedTextField(
             value = selectedValue ?: "Todos",
             onValueChange = {},
-            label = { Text(label) },
+            label = { Text(label, color = Color.Gray) },
             readOnly = true,
             trailingIcon = {
                 IconButton(onClick = { expanded = true }) {
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = Color.Gray)
                 }
             },
-            modifier = Modifier.fillMaxWidth().clickable { expanded = true }
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = true },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color(0xFF1E88E5), // azul
+                unfocusedBorderColor = Color(0xFF90A4AE), // gris azulado
+                focusedLabelColor = Color(0xFF1E88E5),
+                unfocusedLabelColor = Color.Gray,
+                cursorColor = Color.Black,
+                disabledTextColor = Color.Black,
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            )
         )
+
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-
+            modifier = Modifier.background(Color.White)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(
-                    text = { Text(option ?: "Todos") },
+                    text = { Text(option ?: "Todos", color = Color.Black) },
                     onClick = {
                         onValueChanged(option)
                         expanded = false
@@ -369,6 +382,8 @@ fun DropdownSelector(
         }
     }
 }
+
+
 
 @Composable
 fun DropdownMenu(label: String, selectedValue: String, onValueChanged: (String) -> Unit) {

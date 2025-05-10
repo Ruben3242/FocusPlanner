@@ -2,6 +2,7 @@ package com.example.focus_planner.viewmodel
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
+import com.example.focus_planner.data.model.UserResponse
+import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.utils.SharedPreferencesManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,54 +27,6 @@ class ProfileViewModel @Inject constructor(
     private val apiService: ApiService
 ) : ViewModel() {
 
-//    private val _user = mutableStateOf<User?>(null)
-//    val user: State<User?> = _user
-//    var isLoading by mutableStateOf(false)
-//    var errorMessage by mutableStateOf<String?>(null)
-//
-//    // Función para cargar los datos del usuario
-//    fun loadUser(userId: Long, token: String) {
-//        viewModelScope.launch {
-//            isLoading = true
-//            val response = apiService.getUserById(userId, "Bearer $token")
-//            if (response.isSuccessful) {
-//                _user.value = response.body()
-//                errorMessage = null
-//            } else {
-//                errorMessage = "Error cargando el perfil"
-//            }
-//            isLoading = false
-//        }
-//    }
-//
-//    // Función para actualizar los datos del usuario
-//    fun updateUser(userId: Long, token: String, updatedUser: User, onSuccess: () -> Unit, onError: (String) -> Unit) {
-//        viewModelScope.launch {
-//            isLoading = true
-//            val response = apiService.updateUserById(userId, "Bearer $token", updatedUser)
-//            if (response.isSuccessful) {
-//                _user.value = response.body() // Actualizamos los datos del usuario en el perfil
-//                onSuccess()
-//            } else {
-//                onError("Error al actualizar el perfil")
-//            }
-//            isLoading = false
-//        }
-//    }
-//    fun fetchUserProfile(token: String) {
-//        viewModelScope.launch {
-//            try {
-//                val response = apiService.getUserProfile("Bearer $token")
-//                if (response.isSuccessful) {
-//                    _user.value = response.body()
-//                } else {
-//                    Log.e("ProfileViewModel", "Error al obtener el perfil: ${response.code()}")
-//                }
-//            } catch (e: Exception) {
-//                Log.e("ProfileViewModel", "Excepción: ${e.message}")
-//            }
-//        }
-//    }
 
     // Usamos StateFlow para manejar el estado del perfil
     private val _userProfile = MutableStateFlow<User?>(null)
@@ -178,22 +133,58 @@ class ProfileViewModel @Inject constructor(
 
     fun changePassword(
         token: String,
-        oldPassword: String,
+        userId: Long,
+        currentUserData: User,
         newPassword: String,
+        emailInput: String, // Email ingresado por el usuario
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val response = apiService.changePassword(
-                    "Bearer $token",
-                    mapOf("oldPassword" to oldPassword, "newPassword" to newPassword)
-                )
-                if (response.isSuccessful) {
-                    onSuccess()
+                // Verificamos si el correo ingresado es el mismo que el del usuario
+                if (currentUserData.email != emailInput) {
+                    onError("El correo ingresado no coincide con el correo actual.")
+                    return@launch
+                }
+
+                // Si los correos son iguales, procedemos con la validación de las contraseñas
+                if (newPassword.isEmpty()) {
+                    onError("La nueva contraseña no puede estar vacía.")
+                    return@launch
+                }
+
+                val updateRequest = currentUserData.firstname?.let {
+                    currentUserData.lastname?.let { it1 ->
+                        UpdateUserRequest(
+                            username = currentUserData.username,
+                            email = currentUserData.email,
+                            firstname = it,
+                            lastname = it1,
+                            password = newPassword // Actualizamos la contraseña
+                        )
+                    }
+                }
+
+                val response = updateRequest?.let {
+                    apiService.updateUserProfile(
+                        userId = userId,
+                        token = "Bearer $token",
+                        request = it
+                    )
+                }
+
+                if (response != null && response.isSuccessful) {
+                    val userResponse = response.body()
+                    if (userResponse != null) {
+                        _user.value = userResponse.toDomain()
+                        onSuccess() // Si todo va bien, ejecutamos onSuccess
+                    } else {
+                        onError("Error al obtener la respuesta del servidor.")
+                    }
                 } else {
-                    onError("Error al cambiar la contraseña")
+                    onError("Error al cambiar la contraseña: ${response?.code()}")
                 }
             } catch (e: Exception) {
                 onError("Error de red: ${e.message}")
@@ -202,5 +193,69 @@ class ProfileViewModel @Inject constructor(
             }
         }
     }
+
+//    fun updatePassword(newPassword: String, userId: Long, token: String, context: Context) {
+//        viewModelScope.launch {
+//            try {
+//                // Crea la solicitud con los datos necesarios para actualizar la contraseña
+//                val updatedUser = userProfile.value?.firstname?.let {
+//                    userProfile.value?.let { it1 ->
+//                        userProfile.value!!.lastname?.let { it2 ->
+//                            UpdateUserRequest(
+//                                username = it1.username, // Mantén el username actual
+//                                email = userProfile.value!!.email, // Mantén el email actual
+//                                firstname = it,
+//                                lastname = it2,
+//                                password = newPassword // Establece la nueva contraseña
+//                            )
+//                        }
+//                    }
+//                }
+//
+//                val response =
+//                    updatedUser?.let { apiService.updateUserProfile(userId, "Bearer $token", it) }
+//
+//                if (response != null) {
+//                    if (response.isSuccessful) {
+//                        // Si la actualización es exitosa, muestra un mensaje de éxito
+//                        showPasswordChangeDialog = false
+//                        Toast.makeText(context, "Contraseña actualizada exitosamente", Toast.LENGTH_SHORT).show()
+//                    } else {
+//                        // Si ocurre un error al actualizar, muestra el mensaje de error
+//                        Toast.makeText(context, "Error al actualizar la contraseña", Toast.LENGTH_SHORT).show()
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                Toast.makeText(context, "Error al actualizar la contraseña: ${e.message}", Toast.LENGTH_SHORT).show()
+//            }
+//        }
+//    }
+
+
+
+    fun authenticateUser(email: String, currentPassword: String, onResult: (String?, String?) -> Unit) {
+        viewModelScope.launch {
+            try {
+                // Aquí haces la llamada al backend para autenticar al usuario
+                val response = apiService.login(LoginRequest(email, currentPassword))
+
+                if (response.isSuccessful) {
+                    val loginResponse = response.body()
+                    if (loginResponse != null) {
+                        // Si la autenticación es correcta, se devuelve el token
+                        onResult(loginResponse.token, null)
+                    } else {
+                        onResult(null, "Error de autenticación")
+                    }
+                } else {
+                    onResult(null, "Correo o contraseña incorrectos")
+                }
+            } catch (e: Exception) {
+                onResult(null, "Error al intentar iniciar sesión: ${e.message}")
+            }
+        }
+    }
+
+
 
 }

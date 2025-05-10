@@ -20,6 +20,7 @@ import com.example.focus_planner.ui.screens.calendar.CalendarScreen
 import com.example.focus_planner.ui.screens.home.MainScreen
 import com.example.focus_planner.ui.screens.profile.ProfileScreen
 import com.example.focus_planner.ui.screens.tasks.AddTaskScreen
+import com.example.focus_planner.ui.screens.tasks.EditTaskScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
 import com.example.focus_planner.ui.screens.tasks.TaskListScreen
 import com.example.focus_planner.utils.SharedPreferencesManager
@@ -98,5 +99,14 @@ fun AppNavigation(
                 viewModel = taskViewModel,
             )
         }
+        composable("editTask/{taskId}") { backStackEntry ->
+            val taskId = backStackEntry.arguments?.getString("taskId")?.toLongOrNull() ?: return@composable
+            EditTaskScreen(
+                taskId = taskId,
+                onTaskUpdated = { navController.popBackStack() },
+                onBackClick = { navController.popBackStack() }
+            )
+        }
+
     }
 }

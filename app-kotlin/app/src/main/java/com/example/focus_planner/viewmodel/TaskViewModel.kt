@@ -281,5 +281,17 @@ class TaskViewModel @Inject constructor(
         _taskDeleted.value = null
     }
 
+    fun updateTask(task: Task, context: Context) {
+        viewModelScope.launch {
+            val token = getToken(context)
+            if (token != null) {
+                val updatedTask = getUserId(context)?.let { task.copy(userId = it) }
+                if (updatedTask != null) {
+                    repository.updateTask(updatedTask, token)
+                }
+            }
+        }
+    }
+
 
 }

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -72,20 +73,28 @@ fun AddTaskScreen(
         modifier = modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Button(onClick = onBackClick) {
-            Text("Volver")
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Button(
+                onClick = onBackClick,
+                modifier = Modifier.padding(end = 16.dp)
+            ) {
+                Text("Volver")
+            }
+            Text(
+                text = "Editar tarea",
+                style = MaterialTheme.typography.titleLarge,
+                color = androidx.compose.ui.graphics.Color.Black
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextField(
+        OutlinedTextField(
             value = title,
             onValueChange = { title = it },
             label = { Text("Título") },
             modifier = Modifier.fillMaxWidth()
         )
 
-        TextField(
+        OutlinedTextField(
             value = description,
             onValueChange = { description = it },
             label = { Text("Descripción") },
