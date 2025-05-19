@@ -1,6 +1,7 @@
 package com.example.focus_planner.utils
 
 import android.content.Context
+import android.util.Base64
 import android.util.Log
 import androidx.navigation.NavController
 import com.example.focus_planner.network.RetrofitInstance
@@ -9,13 +10,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 object TokenManager {
 
     fun isTokenExpired(context: Context): Boolean {
-        val expiration = SharedPreferencesManager.getTokenExpiration(context)
-        return System.currentTimeMillis() > expiration
+        val token = SharedPreferencesManager.getToken(context)
+        if (token.isNullOrEmpty()) return true
+        return isAccessTokenExpired(token)
     }
+
 
     fun isRefreshPeriodExpired(context: Context): Boolean {
         val loginTime = SharedPreferencesManager.getInitialLoginTimestamp(context)
@@ -153,5 +157,23 @@ object TokenManager {
             }
         }
     }
+
+    fun isAccessTokenExpired(token: String): Boolean {
+        try {
+            val parts = token.split(".")
+            if (parts.size < 3) return true
+
+            val payload = String(Base64.decode(parts[1], Base64.URL_SAFE))
+            val json = JSONObject(payload)
+            val exp = json.getLong("exp") // En segundos
+
+            val currentTime = System.currentTimeMillis() / 1000 // También en segundos
+            return exp < currentTime
+        } catch (e: Exception) {
+            Log.e("TokenDebug", "Error al verificar expiración: ${e.message}")
+            return true
+        }
+    }
+
 
 }

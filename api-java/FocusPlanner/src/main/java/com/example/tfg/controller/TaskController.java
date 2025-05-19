@@ -63,6 +63,16 @@ public class TaskController {
         return ResponseEntity.ok(pagedModel);
     }
 
+    @GetMapping("/tasksbydaterange")
+    public ResponseEntity<List<Task>> getTasksByDateRange(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+        List<Task> tasks = taskService.getTasksBetweenDates(startDate, endDate);
+        return ResponseEntity.ok(tasks);
+    }
+
+
 
     // Obtener una tarea específica por ID
     @GetMapping("/{id}")

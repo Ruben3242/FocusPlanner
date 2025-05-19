@@ -30,6 +30,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AndroidThreeTen.init(this)
 
         // Inicializamos el UserRepository y el ViewModel
         val apiService = RetrofitInstance.getRetrofitInstance().create(ApiService::class.java)

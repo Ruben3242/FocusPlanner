@@ -40,4 +40,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> , JpaSpecifica
     void deleteByUserAndStatusIn(User user, List<TaskStatus> statuses);
 
     Page<Task> findAll(Specification<Task> spec, Pageable pageable);
+
+    List<Task> findAllByDueDateBetween(LocalDate startDate, LocalDate endDate);
+
 }

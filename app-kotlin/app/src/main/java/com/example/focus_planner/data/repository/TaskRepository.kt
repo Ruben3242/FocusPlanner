@@ -1,7 +1,9 @@
 package com.example.focus_planner.data.repository
 
 import com.example.focus_planner.data.model.task.Task
+import com.example.focus_planner.data.model.task.TaskSummaryDTO
 import com.example.focus_planner.network.ApiService
+import org.threeten.bp.LocalDate
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -90,5 +92,8 @@ class TaskRepository @Inject constructor(private val api: ApiService) {
     suspend fun updateTask(task: Task, token: String): Task? {
         val response = api.updateTask(task.id, "Bearer $token", task)
         return if (response.isSuccessful) response.body() else null
+    }
+    suspend fun getTasksByDateRange(startDate: LocalDate, endDate: LocalDate, token: String): List<Task> {
+        return api.getTasksByDateRange(startDate.toString(), endDate.toString(),"Bearer $token")
     }
 }

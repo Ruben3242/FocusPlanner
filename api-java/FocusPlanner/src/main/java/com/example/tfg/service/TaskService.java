@@ -251,4 +251,8 @@ public class TaskService {
 
         taskRepository.delete(task);
     }
+
+    public List<Task> getTasksBetweenDates(LocalDate start, LocalDate end) {
+        return taskRepository.findAllByDueDateBetween(start, end);
+    }
 }

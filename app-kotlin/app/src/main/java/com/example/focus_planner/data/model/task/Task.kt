@@ -21,3 +21,9 @@ data class Task(
     val user: User? = null  // Relación con el usuario
 )
 
+data class TaskSummaryDTO(
+    val dueDate: String,  // Recibiremos la fecha en formato ISO, la parseamos luego a LocalDate
+    val title: String
+)
+
+

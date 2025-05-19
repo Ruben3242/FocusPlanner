@@ -1,52 +1,62 @@
 package com.example.focus_planner.ui.screens.organizacion
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.focus_planner.data.model.UpdateUserRequest
-import com.example.focus_planner.data.model.User
-import com.example.focus_planner.utils.SharedPreferencesManager
-import com.example.focus_planner.utils.TokenManager
-import com.example.focus_planner.viewmodel.ProfileViewModel
 import kotlinx.coroutines.delay
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+
+@Composable
+fun PomodoroTopBar(
+    navController: NavController,
+    isOnBreak: Boolean
+) {
+    val barHeight = 48.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = if (isOnBreak) "RECESO" else "POMODORO",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        IconButton(onClick = { navController.navigate("home") }) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Cerrar",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
 
 @Composable
 fun PomodoroScreen(
@@ -55,169 +65,234 @@ fun PomodoroScreen(
     var isTimerRunning by remember { mutableStateOf(false) }
     var isOnBreak by remember { mutableStateOf(false) }
     var timeLeft by remember { mutableStateOf(25 * 60) } // 25 minutos de trabajo
-    var timeToRest by remember { mutableStateOf(5 * 60) } // 5 minutos de descanso
-    var workTime by remember { mutableStateOf(25) } // Tiempo de trabajo configurado por el usuario
-    var breakTime by remember { mutableStateOf(5) } // Tiempo de descanso configurado por el usuario
+    var workTime by remember { mutableStateOf(25) } // Tiempo de trabajo configurado
+    var breakTime by remember { mutableStateOf(5) } // Tiempo de descanso configurado
 
-    // Función para iniciar el temporizador
-    val startTimer: () -> Unit = {
-        if (!isTimerRunning) {
-            isTimerRunning = true
-        }
-    }
-
-    // Función para pausar el temporizador
-    val pauseTimer: () -> Unit = {
-        if (isTimerRunning) {
-            isTimerRunning = false
-        }
-    }
-
-    // Función para reiniciar el temporizador
-    val resetTimer: () -> Unit = {
-        timeLeft = workTime * 60 // Resetear a los minutos de trabajo configurados
+    val startTimer = { if (!isTimerRunning) isTimerRunning = true }
+    val pauseTimer = { if (isTimerRunning) isTimerRunning = false }
+    val resetTimer = {
+        timeLeft = workTime * 60
         isTimerRunning = false
         isOnBreak = false
     }
 
-    // Lógica para la cuenta atrás
-    LaunchedEffect(isTimerRunning) {
-        if (isTimerRunning) {
-            while (timeLeft > 0 && isTimerRunning) {
-                delay(1000)  // Espera un segundo
-                timeLeft -= 1
-            }
-            if (timeLeft == 0 && !isOnBreak) {
-                isOnBreak = true
-                timeLeft = breakTime * 60 // Activar el descanso
-            }
+    var isWorkTime by remember { mutableStateOf(true) }
+
+//    var workTime by remember { mutableStateOf(25) } // minutos
+//    var breakTime by remember { mutableStateOf(5) } // minutos
+//    var timeLeft by remember { mutableStateOf(workTime * 60) } // en segundos
+
+    // Sincroniza timeLeft con el nuevo valor de workTime si el temporizador no está corriendo
+    LaunchedEffect(workTime, isTimerRunning, isWorkTime) {
+        if (!isTimerRunning && isWorkTime) {
+            timeLeft = workTime * 60
         }
     }
-    Column {
-        // Botón de volver
-        Row(
+
+    // Sincroniza también para breakTime si lo usas (opcional)
+    LaunchedEffect(breakTime, isTimerRunning, isWorkTime) {
+        if (!isTimerRunning && !isWorkTime) {
+            timeLeft = breakTime * 60
+        }
+    }
+
+    // Lógica del temporizador (reducida aquí)
+    LaunchedEffect(isTimerRunning, timeLeft) {
+        if (isTimerRunning && timeLeft > 0) {
+            delay(1000L)
+            timeLeft -= 1
+        } else if (isTimerRunning && timeLeft == 0) {
+            isTimerRunning = false
+            isWorkTime = !isWorkTime
+            timeLeft = if (isWorkTime) workTime * 60 else breakTime * 60
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            PomodoroTopBar(navController = navController, isOnBreak = isOnBreak)
+        }
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.End
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Cerrar",
-                    tint = colorScheme.primary
+//            Text(
+//                text = if (isOnBreak) "RECESO" else "POMODORO",
+//                style = MaterialTheme.typography.headlineMedium,
+//                color = MaterialTheme.colorScheme.primary,
+//                modifier = Modifier.padding(bottom = 20.dp)
+//            )
+
+            // Texto con tiempo
+            Text(
+                text = "${timeLeft / 60}:${String.format("%02d", timeLeft % 60)}",
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF0D6EFD)
                 )
-            }
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            AnimatedProgressCircle(
+                timeLeft = timeLeft,
+                totalTime = if (isOnBreak) breakTime * 60 else workTime * 60,
+                isRunning = isTimerRunning,
+                onToggle = { isTimerRunning = !isTimerRunning }
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+//            Row(
+//                horizontalArrangement = Arrangement.Center,
+//                modifier = Modifier.fillMaxWidth()
+//            ) {
+//                Button(
+//                    onClick = { if (isTimerRunning) pauseTimer() else startTimer() },
+//                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+//                    shape = MaterialTheme.shapes.medium,
+//                    modifier = Modifier.weight(1f)
+//                ) {
+//                    Text(text = if (isTimerRunning) "Pausar" else "Iniciar", color = MaterialTheme.colorScheme.onPrimary)
+//                }
+//
+//                Spacer(modifier = Modifier.width(16.dp))
+//
+//                Button(
+//                    onClick = resetTimer,
+//                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+//                    shape = MaterialTheme.shapes.medium,
+//                    modifier = Modifier.weight(1f)
+//                ) {
+//                    Text("Reiniciar")
+//                }
+//            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+            Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Text(
+                text = "Tiempo de trabajo: $workTime minutos",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Slider(
+                value = workTime.toFloat(),
+                onValueChange = { if (!isTimerRunning) workTime = it.toInt() }, // Opcional para reforzar
+                valueRange = 10f..60f,
+                steps = 50,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isTimerRunning // Deshabilita el slider si el timer está activo
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Text(
+                text = "Tiempo de descanso: $breakTime minutos",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Slider(
+                value = breakTime.toFloat(),
+                onValueChange = { if (!isTimerRunning) breakTime = it.toInt() },
+                valueRange = 1f..30f,
+                steps = 29,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isTimerRunning
+            )
+
         }
-
-
     }
+}
 
-    // Diseño
-    Column(
+
+
+@Composable
+fun AnimatedProgressCircle(
+    timeLeft: Int,
+    totalTime: Int,
+    isRunning: Boolean,
+    onToggle: () -> Unit
+) {
+    val progress = timeLeft / totalTime.toFloat()
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(durationMillis = 1000)
+    )
+    val sweepAngle = animatedProgress * 360f
+
+    val backgroundColor = Color(0xFF121212) // Negro muy oscuro
+    val trackColor = Color(0xFF2C2F33)      // Gris oscuro para la pista
+    val progressGradient = Brush.sweepGradient(
+        colors = listOf(
+            Color(0xFF0D6EFD),   // Azul brillante
+            Color(0xFF0056B3)    // Azul oscuro
+        )
+    )
+
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .size(220.dp)
+            .clickable { onToggle() },
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = if (isOnBreak) "RECESO" else "POMODORO",
-            style = MaterialTheme.typography.titleLarge,
-            color = colorScheme.primary,
-        )
+        Canvas(modifier = Modifier.size(220.dp)) {
+            drawCircle(
+                color = Color.Black.copy(alpha = 0.5f),
+                radius = size.minDimension / 2,
+                center = center,
+                style = Stroke(width = 22.dp.toPx(), cap = StrokeCap.Round)
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
+            drawArc(
+                color = trackColor,
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = 18.dp.toPx(), cap = StrokeCap.Round)
+            )
 
-        // Mostrar el contador de tiempo restante
-        Text(
-            text = "${timeLeft / 60}:${String.format("%02d", timeLeft % 60)}",
-            style = MaterialTheme.typography.displayLarge,
-            color = Color.Black
-        )
+            drawArc(
+                brush = progressGradient,
+                startAngle = -90f,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                style = Stroke(width = 18.dp.toPx(), cap = StrokeCap.Round)
+            )
 
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Círculo de Progreso
-        AnimatedProgressCircle(timeLeft = timeLeft, totalTime = if (isOnBreak) breakTime else workTime)
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Botones de Control
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Button(
-                onClick = {
-                    if (isTimerRunning) pauseTimer() else startTimer()
-                }
-            ) {
-                Text(text = if (isTimerRunning) "Pausar" else "Iniciar")
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Button(onClick = { resetTimer() }) {
-                Text("Reiniciar")
-            }
+            drawCircle(
+                color = backgroundColor,
+                radius = size.minDimension / 2 - 18.dp.toPx() - 10.dp.toPx(),
+                center = center
+            )
         }
-        Spacer(modifier = Modifier.height(10.dp))
-        Divider(color = Color.Gray, thickness = 1.dp)
-        // Personalización de tiempos de trabajo y descanso
-        Spacer(modifier = Modifier.height(20.dp))
-        Text("Tiempo de trabajo: $workTime minutos")
-        Slider(
-            value = workTime.toFloat(),
-            onValueChange = { workTime = it.toInt() },
-            valueRange = 10f..60f,
-            steps = 50,
-            modifier = Modifier.fillMaxWidth()
-        )
 
-        Spacer(modifier = Modifier.height(10.dp))
 
-        Text("Tiempo de descanso: $breakTime minutos")
-        Slider(
-            value = breakTime.toFloat(),
-            onValueChange = { breakTime = it.toInt() },
-            valueRange = 1f..30f,
-            steps = 29,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
-}
-@Composable
-fun ProgressCircle(timeLeft: Int, totalTime: Int) {
-    val progress = (timeLeft / totalTime.toFloat()) * 360f
-    val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(durationMillis = 1000))
-    val primaryColor = colorScheme.primary
-    Canvas(modifier = Modifier.size(200.dp)) {
-        drawArc(
-            color = primaryColor,
-            startAngle = -90f,
-            sweepAngle = animatedProgress,
-            useCenter = false,
-            size = size,
-            style = Stroke(width = 10.dp.toPx())
+        // Icono de play o pausa sobre el texto, con fondo circular para mejor legibilidad
+        Icon(
+            imageVector = if (isRunning) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = if (isRunning) "Pausar" else "Reanudar",
+            tint = Color(0xFF0D6EFD),
+            modifier = Modifier
+                .size(48.dp)
+                .align(Alignment.Center)
+                .background(
+                    color = Color.Black.copy(alpha = 0.5f),
+                    shape = MaterialTheme.shapes.small
+                )
+                .padding(8.dp)
         )
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun AnimatedProgressCircle(timeLeft: Int, totalTime: Int) {
-    val progress = (timeLeft / totalTime.toFloat()) * 360f
-    val animatedProgress by animateFloatAsState(targetValue = progress, animationSpec = tween(durationMillis = 1000))
-
-    val primaryColor = colorScheme.primary
-    Canvas(modifier = Modifier.size(200.dp)) {
-        drawArc(
-            color = primaryColor,
-            startAngle = -90f,
-            sweepAngle = animatedProgress,
-            useCenter = false,
-            size = size,
-            style = Stroke(width = 10.dp.toPx())
-        )
-    }
+fun PomodoroScreenPreview() {
+    PomodoroScreen(navController = NavController(context = LocalContext.current))
 }

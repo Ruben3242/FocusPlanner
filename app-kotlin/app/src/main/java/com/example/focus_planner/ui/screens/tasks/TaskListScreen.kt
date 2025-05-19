@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -34,8 +35,40 @@ import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.viewmodel.TaskViewModel
 import androidx.compose.material3.TextFieldDefaults
+import com.example.focus_planner.utils.TokenManager
 
 
+@Composable
+fun TaskListTopBar(
+    navController: NavController
+) {
+    val barHeight = 48.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Mis Tareas",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        IconButton(onClick = { navController.navigate("home") }) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Cerrar",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(
     onTaskClick: (Task) -> Unit,
@@ -46,13 +79,12 @@ fun TaskListScreen(
     navController: NavController,
     loading: Boolean = false,
 ) {
+    val context = LocalContext.current
     LaunchedEffect(true) {
         viewModel.setToken(token)
-        viewModel.initializeFiltering()
-        viewModel.refreshTasks()
+        TokenManager.checkTokenAndRefresh(context, navController)
     }
 
-    val context = LocalContext.current
     val tasks by viewModel.tasks.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     var statusFilter by remember { mutableStateOf<String?>(null) }
@@ -60,149 +92,154 @@ fun TaskListScreen(
     var showCompleted by remember { mutableStateOf(false) }
     var expanded by remember { mutableStateOf(false) }
 
+//    @OptIn(ExperimentalMaterial3Api::class)
+//    val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
+//        cursorColor = MaterialTheme.colorScheme.primary,
+//        focusedBorderColor = MaterialTheme.colorScheme.primary,
+//        unfocusedBorderColor = Color.Gray
+//    )
 
-    @OptIn(ExperimentalMaterial3Api::class)
-    val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-        cursorColor = MaterialTheme.colorScheme.primary,
-        focusedBorderColor = MaterialTheme.colorScheme.primary,
-        unfocusedBorderColor = Color.Gray
-    )
-
-
-    Column(modifier = modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-
-        // Botón para volver atrás
-        Button(onClick = onBackClick, modifier = Modifier.align(Alignment.Start)) {
-            Text("Volver")
+    Scaffold(
+        topBar = {
+            TaskListTopBar(navController)
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
-        @Composable
-        fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                label = { Text(label) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF1E88E5),
-                    unfocusedBorderColor = Color(0xFF90A4AE),
-                    cursorColor = Color.Black,
-                    focusedTextColor = Color.Black,
-                    unfocusedTextColor = Color.Black,
-                    focusedLabelColor = Color(0xFF1E88E5),
-                    unfocusedLabelColor = Color.Gray
-                )
-            )
-        }
-
-        styledTextField(searchQuery, { searchQuery = it }, "Buscar por título")
-
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Filtros desplegables
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            DropdownSelector(
-                label = "Estado",
-                options = listOf(null) + TaskStatus.values().map { it.value },
-                selectedValue = statusFilter,
-                onValueChanged = {
-                    statusFilter = it
-                    viewModel.onStatusFilterChange(it)
-                },
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            DropdownSelector(
-                label = "Prioridad",
-                options = listOf(null) + TaskPriority.values().map { it.value },
-                selectedValue = priorityFilter,
-                onValueChanged = {
-                    priorityFilter = it
-                    viewModel.onPriorityFilterChange(it)
-                },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Mostrar tareas completadas
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = showCompleted,
-                onCheckedChange = {
-                    showCompleted = it
-                    viewModel.setShowCompleted(it)
-                }
-            )
-            Text("Mostrar tareas completadas")
-        }
-
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Lista de tareas
-        LazyColumn {
-            items(tasks) { task ->
-                TaskCard(
-                    task = task,
-                    onDeleteById = { id ->
-                        viewModel.deleteTask(context, id)
-                    },
-                    onNavigateToDetails = { id ->
-                        navController.navigate("taskDetail/$id")
-                    },
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    navController = navController
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(8.dp)
+        ) {
+            @Composable
+            fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    label = { Text(label) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF1E88E5),
+                        unfocusedBorderColor = Color(0xFF90A4AE),
+                        cursorColor = Color.Black,
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+                        focusedLabelColor = Color(0xFF1E88E5),
+                        unfocusedLabelColor = Color.Gray
+                    )
                 )
             }
 
-            // Botón para cargar más
-            item {
-                if (!loading) {
-                    Button(
-                        onClick = { viewModel.loadNextPage() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text("Cargar más")
+            styledTextField(searchQuery, { searchQuery = it }, "Buscar por título")
+
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Filtros desplegables
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                DropdownSelector(
+                    label = "Estado",
+                    options = listOf(null) + TaskStatus.values().map { it.value },
+                    selectedValue = statusFilter,
+                    onValueChanged = {
+                        statusFilter = it
+                        viewModel.onStatusFilterChange(it)
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                DropdownSelector(
+                    label = "Prioridad",
+                    options = listOf(null) + TaskPriority.values().map { it.value },
+                    selectedValue = priorityFilter,
+                    onValueChanged = {
+                        priorityFilter = it
+                        viewModel.onPriorityFilterChange(it)
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Mostrar tareas completadas
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = showCompleted,
+                    onCheckedChange = {
+                        showCompleted = it
+                        viewModel.setShowCompleted(it)
                     }
-                } else {
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .padding(16.dp)
+                )
+                Text("Mostrar tareas completadas")
+            }
+
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Lista de tareas
+            LazyColumn {
+                items(tasks) { task ->
+                    TaskCard(
+                        task = task,
+                        onDeleteById = { id ->
+                            viewModel.deleteTask(context, id)
+                        },
+                        onNavigateToDetails = { id ->
+                            navController.navigate("taskDetail/$id")
+                        },
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        navController = navController
                     )
                 }
+
+                // Botón para cargar más
+                item {
+                    if (!loading) {
+                        Button(
+                            onClick = { viewModel.loadNextPage() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Text("Cargar más")
+                        }
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(16.dp)
+                        )
+                    }
+                }
             }
+            // FAB para añadir tareas (superpuesto en la esquina inferior derecha)
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                ) {
+
+                }
+
+                FloatingActionButton(
+                    onClick = { navController.navigate("addTask") },
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = Color.White,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(20.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Añadir tarea")
+                }
+            }
+
         }
-        // FAB para añadir tareas (superpuesto en la esquina inferior derecha)
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-            ) {
-
-            }
-
-            FloatingActionButton(
-                onClick = { navController.navigate("addTask") },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(20.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Añadir tarea")
-            }
-        }
-
     }
+
 }
 
 
@@ -345,9 +382,6 @@ fun TaskCard(
 }
 
 
-
-
-
 @Composable
 fun DropdownSelector(
     label: String,
@@ -401,7 +435,6 @@ fun DropdownSelector(
         }
     }
 }
-
 
 
 @Composable

@@ -89,11 +89,17 @@ fun AddTaskScreen(
                 color = androidx.compose.ui.graphics.Color.Black
             )
         }
-        @OptIn(ExperimentalMaterial3Api::class)
-        val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-            cursorColor = MaterialTheme.colorScheme.primary,
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = Color.Gray
+//        val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
+//            cursorColor = MaterialTheme.colorScheme.primary,
+//            focusedBorderColor = MaterialTheme.colorScheme.primary,
+//            unfocusedBorderColor = Color.Gray
+//        )
+        val textFieldColors = TextFieldDefaults.colors(
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+            unfocusedIndicatorColor = Color.Gray,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            cursorColor = MaterialTheme.colorScheme.primary
         )
         OutlinedTextField(
             value = title,

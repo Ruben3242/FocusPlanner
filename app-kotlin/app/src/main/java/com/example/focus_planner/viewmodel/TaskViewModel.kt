@@ -70,7 +70,6 @@ class TaskViewModel @Inject constructor(
     fun setToken(token: String) {
         _token.value = token
         currentToken = token
-        refreshTasks()
     }
     fun refreshTasks() {
         _page.value = 0

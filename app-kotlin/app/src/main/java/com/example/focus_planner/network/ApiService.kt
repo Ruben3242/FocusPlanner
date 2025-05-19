@@ -4,6 +4,7 @@ import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
+import com.example.focus_planner.data.model.task.TaskSummaryDTO
 import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.model.LoginResponse
 import com.example.focus_planner.model.RegisterRequest
@@ -93,16 +94,12 @@ interface ApiService {
         @Header("Authorization") token: String
     ): Response<Task>
 
-//    @GET("api/tasks")
-//    suspend fun getTasks(
-//        @Query("page") page: Int,
-//        @Query("size") size: Int,
-////        @Query("completed") completed: Boolean? = null,
-////        @Query("search") search: String? = null,
-////        @Query("status") status: String? = null,
-////        @Query("priority") priority: String? = null,
-//        @Header("Authorization") authorization: String
-//    ): Response<List<Task>>
+    @GET("/api/tasks/tasksbydaterange")
+    suspend fun getTasksByDateRange(
+        @Query("startDate") startDate: String,
+        @Query("endDate") endDate: String,
+        @Header("Authorization") token: String
+    ): List<Task>
 
     @GET("api/tasks/filter")
     suspend fun getFilteredTasks(

@@ -116,7 +116,7 @@ public class SecurityConfig {
 				.userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
 				.userNameAttributeName("sub")
 				.clientName("Google")
-				.redirectUri("https://4734-92-189-98-92.ngrok-free.app/api/google/callback") // Cambia esto a la URL de tu callback
+				.redirectUri("https://8a29-92-189-98-92.ngrok-free.app/api/google/callback") // Cambia esto a la URL de tu callback
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 				.build();

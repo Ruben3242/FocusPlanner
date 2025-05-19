@@ -3,6 +3,7 @@ package com.example.focus_planner.ui.screens.profile
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -19,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -34,10 +36,40 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
+import com.example.focus_planner.ui.screens.tasks.TaskListTopBar
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.TokenManager
 import com.example.focus_planner.viewmodel.ProfileViewModel
 
+@Composable
+fun ProfileTopBar(
+    navController: NavController
+) {
+    val barHeight = 48.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Editar Perfil",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        IconButton(onClick = { navController.navigate("home") }) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Cerrar",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -83,91 +115,81 @@ fun ProfileScreen(
             CircularProgressIndicator()
         }
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // Botón de volver al inicio del contenido
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
+        Scaffold(
+            topBar = {
+                ProfileTopBar(navController)
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Button(
-                    onClick = { navController.popBackStack() }
-                ) {
-                    Text("Volver")
+
+
+                @Composable
+                fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = onValueChange,
+                        label = { Text(label) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color(0xFF1E88E5),
+                            unfocusedBorderColor = Color(0xFF90A4AE),
+                            cursorColor = Color.Black,
+                            focusedTextColor = Color.Black,
+                            unfocusedTextColor = Color.Black,
+                            focusedLabelColor = Color(0xFF1E88E5),
+                            unfocusedLabelColor = Color.Gray
+                        )
+                    )
                 }
-            }
 
-            if (user != null) {
-                Text(
-                    text = "Editar Perfil",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.Black
-                )
-            }
+                Spacer(modifier = Modifier.height(30.dp))
+                styledTextField(newUsername, { newUsername = it }, "Username")
+                styledTextField(newEmail, { newEmail = it }, "Email")
+                styledTextField(newFirstname, { newFirstname = it }, "Firstname")
+                styledTextField(newLastname, { newLastname = it }, "Lastname")
 
-            @Composable
-            fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    label = { Text(label) },
+                Button(
+                    onClick = {
+                        viewModel.updateUserProfile(
+                            userId = user?.id ?: 0,
+                            updatedUser = UpdateUserRequest(
+                                username = newUsername,
+                                email = newEmail,
+                                firstname = newFirstname,
+                                lastname = newLastname
+                            ),
+                            context = context,
+                            navController = navController
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Guardar cambios")
+                }
+
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                Text("¿Quieres activar la integración con Google Calendar?")
+                Button(
+                    onClick = {
+                        val intent =
+                            android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                data =
+                                    android.net.Uri.parse("https://4734-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
+                            }
+                        context.startActivity(intent)
+                    },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF1E88E5),
-                        unfocusedBorderColor = Color(0xFF90A4AE),
-                        cursorColor = Color.Black,
-                        focusedTextColor = Color.Black,
-                        unfocusedTextColor = Color.Black,
-                        focusedLabelColor = Color(0xFF1E88E5),
-                        unfocusedLabelColor = Color.Gray
-                    )
-                )
-            }
-
-            styledTextField(newUsername, { newUsername = it }, "Username")
-            styledTextField(newEmail, { newEmail = it }, "Email")
-            styledTextField(newFirstname, { newFirstname = it }, "Firstname")
-            styledTextField(newLastname, { newLastname = it }, "Lastname")
-
-            Button(
-                onClick = {
-                    viewModel.updateUserProfile(
-                        userId = user?.id ?: 0,
-                        updatedUser = UpdateUserRequest(
-                            username = newUsername,
-                            email = newEmail,
-                            firstname = newFirstname,
-                            lastname = newLastname
-                        ),
-                        context = context,
-                        navController = navController
-                    )
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Guardar cambios")
-            }
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            Text("¿Quieres activar la integración con Google Calendar?")
-            Button(
-                onClick = {
-                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                        data =
-                            android.net.Uri.parse("https://4734-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
-                    }
-                    context.startActivity(intent)
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5))
-            ) {
-                Text("Activar Google Calendar", color = Color.White)
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5))
+                ) {
+                    Text("Activar Google Calendar", color = Color.White)
+                }
             }
         }
     }
