@@ -80,6 +80,8 @@ class UserViewModel @Inject constructor(
 
     // Función para manejar login
     fun login(email: String, password: String, context: Context, onResult: (Boolean) -> Unit) {
+        Log.d("UserViewModel", "Intentando login con: " + email + " / " + password);
+
         viewModelScope.launch {
             try {
                 val response = apiService.login(LoginRequest(email, password))

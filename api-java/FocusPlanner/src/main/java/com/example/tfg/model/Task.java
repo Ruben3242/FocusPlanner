@@ -40,7 +40,6 @@ public class Task extends RepresentationModel<Task> {
     @JsonBackReference
     private User user;
 
-    @JsonIgnore
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 

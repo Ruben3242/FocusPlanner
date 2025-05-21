@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.focus_planner.data.local.AppDatabase
 import com.example.focus_planner.data.model.UserToken
 import com.example.focus_planner.data.local.UserTokenDao
+import com.example.focus_planner.data.model.UpdateSettingsRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.model.RegisterRequest
@@ -38,8 +39,8 @@ import javax.inject.Inject
         suspend fun register(name: String, email: String, password: String) = apiService.register(
             RegisterRequest(name, email, password)
         )
-        suspend fun updateUserById(userId: String, token: String, user: User): Response<User> {
-            return apiService.updateUserById(userId, "Bearer $token", user)
+        suspend fun updateUserById(userId: String, token: String, user: UpdateSettingsRequest): Response<User> {
+            return apiService.updateUserSettings(userId, "Bearer $token", user)
         }
 
         suspend fun getUserById(userId: Long, token: String): Response<User> {

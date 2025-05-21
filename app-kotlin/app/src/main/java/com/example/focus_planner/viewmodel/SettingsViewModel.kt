@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.focus_planner.data.model.UpdateSettingsRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.task.TaskDto
 import com.example.focus_planner.data.model.task.TaskStatus
@@ -179,15 +180,16 @@ class SettingsViewModel @Inject constructor(
 
 
 
-    fun updateUserSettings(updatedUser: User, token: String) {
+    fun updateUserSettings(userId: Long, token: String, autoDeleteEnabled: Boolean) {
         viewModelScope.launch {
             try {
-                Log.d("Settings", "Llamando al endpoint con: ${updatedUser.removeCompletedExpiredTasks}")
-                val response = userRepository.updateUserById(updatedUser.id.toString(), token, updatedUser)
+                val request = UpdateSettingsRequest(removeCompletedExpiredTasks = autoDeleteEnabled)
+                Log.d("Settings", "Llamando al endpoint con: $autoDeleteEnabled")
+                val response = userRepository.updateUserById(userId.toString(), token, request)
+
                 if (response.isSuccessful) {
                     response.body()?.let {
                         _user.value = it
-                        _user.value = updatedUser
                         Log.d("Settings", "Actualización exitosa")
                     }
                 } else {
@@ -198,6 +200,7 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
 
     fun loadUserById(userId: Long, token: String) {
         viewModelScope.launch {

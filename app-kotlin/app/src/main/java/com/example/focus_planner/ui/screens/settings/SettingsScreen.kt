@@ -192,8 +192,7 @@ fun SettingsScreen(
                                 onCheckedChange = { newValue ->
                                     isAutoDeleteEnabled.value = newValue
                                     user?.let { currentUser ->
-                                        val updatedUser = currentUser.copy(removeCompletedExpiredTasks = newValue)
-                                        viewModel.updateUserSettings(updatedUser, token!!)
+                                        viewModel.updateUserSettings(currentUser.id, token!!, newValue)
                                     }
                                 }
                             )

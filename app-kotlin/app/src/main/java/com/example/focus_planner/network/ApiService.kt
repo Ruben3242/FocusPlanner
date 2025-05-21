@@ -1,5 +1,6 @@
 package com.example.focus_planner.network
 
+import com.example.focus_planner.data.model.UpdateSettingsRequest
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
@@ -41,6 +42,13 @@ interface ApiService {
         @Path("id") userId: String,
         @Header("Authorization") token: String,
         @Body updatedUser: User,
+    ): Response<User>
+
+    @PUT("api/users/{id}/settings")
+    suspend fun updateUserSettings(
+        @Path("id") userId: String,
+        @Header("Authorization") token: String,
+        @Body body: UpdateSettingsRequest,
     ): Response<User>
 
     @GET("api/users/{id}")

@@ -90,14 +90,6 @@ fun TaskListScreen(
     var statusFilter by remember { mutableStateOf<String?>(null) }
     var priorityFilter by remember { mutableStateOf<String?>(null) }
     var showCompleted by remember { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
-
-//    @OptIn(ExperimentalMaterial3Api::class)
-//    val textFieldColors = TextFieldDefaults.outlinedTextFieldColors(
-//        cursorColor = MaterialTheme.colorScheme.primary,
-//        focusedBorderColor = MaterialTheme.colorScheme.primary,
-//        unfocusedBorderColor = Color.Gray
-//    )
 
     Scaffold(
         topBar = {
@@ -129,7 +121,11 @@ fun TaskListScreen(
                 )
             }
 
-            styledTextField(searchQuery, { searchQuery = it }, "Buscar por título")
+            styledTextField(searchQuery, {
+                searchQuery = it
+                viewModel.onSearchQueryChange(it)
+            }, "Buscar por título")
+
 
 
             Spacer(modifier = Modifier.height(8.dp))

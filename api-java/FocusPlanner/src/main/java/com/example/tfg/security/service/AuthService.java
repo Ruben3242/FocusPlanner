@@ -15,6 +15,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -32,22 +34,48 @@ public class AuthService {
     private final EmailService emailService;
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
+    private final PasswordEncoder passwordEncoder;
+
 
     public AuthResponse login(LoginRequest request) {
+
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> {
+                    System.out.println("[LOGIN] Usuario no encontrado con email: " + request.getEmail());
+                    return new RuntimeException("User not found");
+                });
+
+        System.out.println("[LOGIN] Intentando login para email: " + request.getEmail());
+        System.out.println("[DEBUG] Contraseña introducida: " + request.getPassword());
+        System.out.println("[DEBUG] Hash en base de datos: " + user.getPassword());
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String hash = encoder.encode("123");
+        System.out.println("Hash de '123': " + hash);
+        System.out.println("[DEBUG] Coinciden?: " + passwordEncoder.matches(request.getPassword(), user.getPassword()));
+
 
         if (!user.isVerified()) {
+            System.out.println("[LOGIN] Usuario no verificado: " + user.getEmail());
             throw new RuntimeException("User is not verified.");
         }
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            System.out.println("[LOGIN] Autenticando usuario con AuthenticationManager...");
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            System.out.println("[LOGIN] Autenticación exitosa.");
+        } catch (Exception e) {
+            System.out.println("[LOGIN] Falló la autenticación: " + e.getMessage());
+            throw new RuntimeException("Credenciales inválidas.");
+        }
 
         String accessToken = jwtService.getToken(user);
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+
+        System.out.println("[LOGIN] Token generado correctamente.");
+        System.out.println("[LOGIN] Login completado para usuario: " + user.getEmail());
 
         return AuthResponse.builder()
                 .token(accessToken)
@@ -55,6 +83,7 @@ public class AuthService {
                 .message("Login successful!")
                 .build();
     }
+
 
 
     // Método para registrar un nuevo usuario

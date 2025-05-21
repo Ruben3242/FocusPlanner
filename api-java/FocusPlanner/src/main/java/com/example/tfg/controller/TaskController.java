@@ -4,6 +4,7 @@ import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.TaskDto;
+import com.example.tfg.model.UpdateSettingsRequest;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
 import com.example.tfg.service.TaskService;
@@ -124,5 +125,20 @@ public class TaskController {
 
         return ResponseEntity.ok("Tareas eliminadas correctamente.");
     }
+
+    @PutMapping("/api/users/{id}/settings")
+    public ResponseEntity<User> updateSettings(
+            @PathVariable Long id,
+            @RequestBody UpdateSettingsRequest request
+    ) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRemoveCompletedExpiredTasks(request.getRemoveCompletedExpiredTasks());
+        userRepository.save(user);
+
+        return ResponseEntity.ok(user);
+    }
+
 
 }

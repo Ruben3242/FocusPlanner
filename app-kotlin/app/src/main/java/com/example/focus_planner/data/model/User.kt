@@ -20,3 +20,7 @@ data class User(
     @ColumnInfo(name = "remove_completed_expired_tasks") val removeCompletedExpiredTasks: Boolean,
     @ColumnInfo(name = "Task_list") val taskList: List<Task>? = null
 )
+data class UpdateSettingsRequest(
+    val removeCompletedExpiredTasks: Boolean
+)
+
