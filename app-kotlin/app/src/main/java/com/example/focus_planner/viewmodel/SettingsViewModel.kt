@@ -17,6 +17,7 @@ import com.example.focus_planner.data.repository.TaskRepository
 import com.example.focus_planner.data.repository.UserRepository
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.utils.SharedPreferencesManager
+import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
 import com.example.focus_planner.utils.SharedPreferencesManager.getSelectedStatuses
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import com.example.focus_planner.utils.SharedPreferencesManager.loadAutoDeleteEnabled
@@ -213,10 +214,18 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+    private val _deleteSuccess = MutableStateFlow(false)
+    val deleteSuccess: StateFlow<Boolean> = _deleteSuccess
 
-
-
-
-
-
+    fun deleteUserAccount(token: String, context: Context) {
+        viewModelScope.launch {
+            try {
+                userRepository.deleteAccount("Bearer $token")
+                clearSession(context)
+                _deleteSuccess.value = true
+            } catch (e: Exception) {
+                Log.e("DeleteAccount", "Error al eliminar cuenta: ${e.message}")
+            }
+        }
+    }
 }

@@ -33,53 +33,6 @@ object TokenManager {
         return currentTime >= expirationTime
     }
 
-//    fun checkTokenAndRefresh(context: Context, navController: NavController) {
-//        Log.d("TokenRefresh", "Comprobando si el token ha caducado...")
-//
-//        if (isTokenExpired(context)) {
-//            Log.d("TokenRefresh", "El token ha caducado. Intentando renovarlo...")
-//
-//            val refreshToken = SharedPreferencesManager.getRefreshToken(context)
-//            if (refreshToken == null) {
-//                Log.w("TokenRefresh", "No se encontró refresh token.")
-//                return
-//            }
-//
-//            CoroutineScope(Dispatchers.IO).launch {
-//                try {
-//                    val response = RetrofitInstance.api.refreshToken(refreshToken)
-//                    if (response.isSuccessful) {
-//                        val newToken = response.body()?.token
-//                        val newRefresh = response.body()?.refreshToken
-//                        val newExpiration = System.currentTimeMillis() + 24 * 60 * 60 * 1000 // 24 horas
-//
-//                        if (newToken != null && newRefresh != null) {
-//                            SharedPreferencesManager.saveLoginData(context, newToken, newRefresh, newExpiration)
-//                            Log.d("TokenRefresh", "Token actualizado correctamente con nuevo token y refresh token.")
-//                        } else {
-//                            Log.w("TokenRefresh", "Respuesta sin tokens válidos. Cerrando sesión.")
-//                            clearSessionIfExpired(context, navController)
-//                        }
-//                    } else {
-//                        Log.w("TokenRefresh", "Respuesta no exitosa al renovar token. Código: ${response.code()}")
-//                        clearSessionIfExpired(context, navController)
-//                    }
-//                } catch (e: Exception) {
-//                    Log.e("TokenRefresh", "Error al renovar token: ${e.message}")
-//                    clearSessionIfExpired(context, navController)
-//                }
-//            }
-//        } else {
-//            Log.d("TokenRefresh", "El token aún es válido. Verificando si expiró el periodo de 7 días...")
-//
-//            if (isRefreshPeriodExpired(context)) {
-//                Log.w("TokenRefresh", "El periodo de 7 días ha expirado. Cerrando sesión.")
-//                clearSessionIfExpired(context, navController)
-//            } else {
-//                Log.d("TokenRefresh", "Todo correcto. No es necesario renovar ni cerrar sesión.")
-//            }
-//        }
-//    }
 
     fun checkTokenAndRefresh(context: Context, navController: NavController) {
         val accessTokenExpired = isTokenExpired(context)
@@ -117,12 +70,6 @@ object TokenManager {
                         if (newToken != null && newRefresh != null) {
                             val newExpiration = System.currentTimeMillis() + 24 * 60 * 60 * 1000
                             SharedPreferencesManager.saveLoginData(context, newToken, newRefresh, newExpiration)
-//                            SharedPreferencesManager.saveLoginData(
-//                                context,
-//                                newToken,
-//                                refreshToken,
-//                                System.currentTimeMillis() - (8 * 24 * 60 * 60 * 1000) // hace 2 días
-//                            )
                             Log.d("TokenDebug", "Token actualizado correctamente")
                         } else {
                             Log.e("TokenDebug", "Token o refreshToken nulos en la respuesta.")

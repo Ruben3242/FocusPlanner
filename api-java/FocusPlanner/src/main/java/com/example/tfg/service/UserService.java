@@ -134,4 +134,19 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
+    public void deleteUserById(Long userId) {
+        // Validación opcional
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+
+        // Eliminar tareas
+        taskRepository.deleteAllByUserId(userId);
+
+        // Eliminar tokens de verificación
+        tokenVerificationRepository.deleteAllByUserId(userId);
+
+        // Eliminar usuario
+        userRepository.delete(user);
+    }
 }

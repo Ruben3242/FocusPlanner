@@ -160,4 +160,9 @@ interface ApiService {
         @Body statuses: List<String>
     ): Response<ResponseBody>
 
+    @DELETE("/api/users/me")
+    suspend fun deleteMyAccount(
+        @Header("Authorization") authHeader: String
+    ): Response<Unit>
+
 }

@@ -3,6 +3,7 @@ package com.example.focus_planner.ui.screens.settings
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -77,6 +78,7 @@ fun SettingsScreen(
     val importResult by viewModel.importResult.collectAsState()
     var isDialogVisible by remember { mutableStateOf(false) }
     var showStatusDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val token = getToken(context)
     val user by viewModel.user.collectAsState()
@@ -118,6 +120,26 @@ fun SettingsScreen(
             CircularProgressIndicator()
         }
         return // Salir del Composable para no renderizar el resto aún
+    }
+
+    if (showDeleteDialog) {
+        DeleteAccountDialog(
+            onDismiss = { showDeleteDialog = false },
+            onConfirm = {
+                if (token != null) {
+                    viewModel.deleteUserAccount(token, context)
+                }
+                showDeleteDialog = false
+            }
+        )
+    }
+    LaunchedEffect(viewModel.deleteSuccess.collectAsState().value) {
+        if (viewModel.deleteSuccess.value) {
+            navController.navigate("login") {
+                popUpTo("home") { inclusive = true }
+            }
+            Toast.makeText(context, "Cuenta eliminada", Toast.LENGTH_SHORT).show()
+        }
     }
 
 
@@ -303,7 +325,7 @@ fun SettingsScreen(
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
                 onClick = {
-                    // TODO: Mostrar diálogo de confirmación + deleteUserAccount()
+                    showDeleteDialog = true
                 }
             )
         }
@@ -368,3 +390,67 @@ fun SettingsOptionCard(
         }
     }
 }
+
+@Composable
+fun DeleteAccountDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    var confirmationText by remember { mutableStateOf("") }
+    val isConfirmEnabled = confirmationText == "CONFIRMAR"
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "¿Eliminar cuenta?",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "Eliminar tu cuenta borrará toda tu información personal y todas las tareas asociadas. Esta acción no se puede deshacer.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Si deseas conservar tus tareas, puedes exportarlas desde Inicio > Ajustes > Exportar mis tareas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    "Escribe CONFIRMAR para continuar:",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                TextField(
+                    value = confirmationText,
+                    onValueChange = { confirmationText = it },
+                    placeholder = { Text("CONFIRMAR") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                enabled = isConfirmEnabled,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("Quiero eliminar mi cuenta")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+

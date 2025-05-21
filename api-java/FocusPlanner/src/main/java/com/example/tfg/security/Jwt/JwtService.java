@@ -146,4 +146,12 @@ public class JwtService {
                 .parseClaimsJws(token)
                 .getBody();
     }
+
+    public Long extractUserId(String token) {
+        try {
+            return Long.parseLong(extractId(token));
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid token");
+        }
+    }
 }

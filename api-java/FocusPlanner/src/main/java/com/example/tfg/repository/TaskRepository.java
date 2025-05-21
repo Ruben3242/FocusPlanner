@@ -48,5 +48,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> , JpaSpecifica
 
     boolean existsByUserIdAndTitle(Long userId, String title);
 
+    void deleteAllByUserId(Long userId);
 
 }

@@ -46,8 +46,9 @@ import javax.inject.Inject
             return apiService.getUserById(userId, "Bearer $token")
         }
 
-
-
+        suspend fun deleteAccount(authHeader: String) {
+            apiService.deleteMyAccount(authHeader)
+        }
     }
 
 

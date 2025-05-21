@@ -185,6 +185,13 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<String> deleteMyAccount(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.replace("Bearer ", "").trim();
+        Long userId = Long.valueOf(jwtService.extractId(token));
+        userService.deleteUserById(userId);
+        return ResponseEntity.ok("Cuenta eliminada correctamente.");
+    }
 }
 
 
