@@ -3,6 +3,7 @@ package com.example.tfg.model;
 import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
@@ -39,6 +40,7 @@ public class Task extends RepresentationModel<Task> {
     @JsonBackReference
     private User user;
 
+    @JsonIgnore
     @Enumerated(EnumType.STRING)
     private TaskStatus status;
 

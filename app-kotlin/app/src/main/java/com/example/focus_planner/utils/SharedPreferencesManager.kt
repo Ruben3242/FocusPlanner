@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.auth0.jwt.JWT
 import com.auth0.jwt.interfaces.DecodedJWT
+import com.example.focus_planner.data.model.task.TaskStatus
 import kotlin.math.E
 
 object SharedPreferencesManager {
@@ -14,6 +15,8 @@ object SharedPreferencesManager {
     private const val LOGIN_TIMESTAMP_KEY = "login_timestamp"
     private const val KEY_USER_ID = "user_id"
     private const val KEY_USER_EMAIL = "user_email"
+    private const val KEY_SELECTED_STATUSES = "selected_statuses"
+
 
     // Guardar token y fecha de expiración
     fun saveToken(context: Context, token: String?, expirationDate: Long, obtainedDate: Long) {
@@ -146,4 +149,49 @@ object SharedPreferencesManager {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .getLong(EXPIRATION_KEY, 0)
     }
+
+    fun saveAutoDeleteEnabled(context: Context, value: Boolean) {
+        context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean("auto_delete", value)
+            .apply()
+    }
+
+    fun loadAutoDeleteEnabled(context: Context): Boolean {
+        return context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .getBoolean("auto_delete", false)
+    }
+
+
+    fun loadSelectedStatuses(context: Context): List<TaskStatus> {
+        val saved = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .getStringSet("selected_statuses", emptySet()) ?: emptySet()
+        return saved.mapNotNull { runCatching { TaskStatus.valueOf(it) }.getOrNull() }
+    }
+    fun saveSelectedStatuses(context: Context, statuses: List<TaskStatus>) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+        val statusNames = statuses.joinToString(",") { it.name } // Guardamos como "PENDING,DONE"
+        editor.putString(KEY_SELECTED_STATUSES, statusNames)
+        editor.apply()
+    }
+
+    fun getSelectedStatuses(context: Context): List<TaskStatus> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val statusNames = prefs.getString(KEY_SELECTED_STATUSES, "") ?: ""
+        return statusNames.split(",").mapNotNull {
+            try {
+                TaskStatus.valueOf(it)
+            } catch (e: IllegalArgumentException) {
+                null
+            }
+        }
+    }
+
+    fun clearSelectedStatuses(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().remove(KEY_SELECTED_STATUSES).apply()
+    }
+
+
 }

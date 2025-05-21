@@ -19,6 +19,4 @@ data class User(
     @ColumnInfo(name = "verification_token") val verificationToken: String?,
     @ColumnInfo(name = "remove_completed_expired_tasks") val removeCompletedExpiredTasks: Boolean,
     @ColumnInfo(name = "Task_list") val taskList: List<Task>? = null
-) {
-    // Si necesitas relacionar con las tareas, puedes hacerlo en el DAO o usando un ViewModel para manejar la relación
-}
+)

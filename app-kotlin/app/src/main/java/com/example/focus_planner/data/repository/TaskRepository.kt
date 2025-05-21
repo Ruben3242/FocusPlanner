@@ -1,6 +1,8 @@
 package com.example.focus_planner.data.repository
 
+import android.util.Log
 import com.example.focus_planner.data.model.task.Task
+import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.data.model.task.TaskSummaryDTO
 import com.example.focus_planner.network.ApiService
 import org.threeten.bp.LocalDate
@@ -96,4 +98,17 @@ class TaskRepository @Inject constructor(private val api: ApiService) {
     suspend fun getTasksByDateRange(startDate: LocalDate, endDate: LocalDate, token: String): List<Task> {
         return api.getTasksByDateRange(startDate.toString(), endDate.toString(),"Bearer $token")
     }
+
+    suspend fun deleteTasksByStatuses(token: String, statuses: List<TaskStatus>): String {
+        val statusStrings = statuses.map { it.name }  // Convertir a String
+        val response = api.deleteTasksByStatuses("Bearer $token", statusStrings)
+        return if (response.isSuccessful) {
+            response.body()?.string() ?: "Sin respuesta"
+        } else {
+            "Error al eliminar tareas"
+        }
+    }
+
+
+
 }

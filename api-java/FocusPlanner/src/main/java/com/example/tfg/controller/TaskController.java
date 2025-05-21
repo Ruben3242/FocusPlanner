@@ -4,6 +4,8 @@ import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.TaskDto;
+import com.example.tfg.model.User;
+import com.example.tfg.repository.UserRepository;
 import com.example.tfg.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +32,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TaskController {
 
+    private final UserRepository userRepository;
     private final TaskService taskService;
     private final PagedResourcesAssembler<Task> pagedResourcesAssembler;
 
@@ -109,4 +112,17 @@ public class TaskController {
         taskService.deleteTask(id);
         return ResponseEntity.noContent().build();
     }
+    @PostMapping("/delete-by-status")
+    public ResponseEntity<String> deleteTasksByStatuses(@RequestBody List<TaskStatus> statuses) {
+        User user = taskService.getAuthenticatedUser();
+
+        taskService.deleteTasksByStatuses(user, statuses);
+
+        // Actualizamos el campo del usuario
+        user.setRemoveCompletedExpiredTasks(true);
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Tareas eliminadas correctamente.");
+    }
+
 }

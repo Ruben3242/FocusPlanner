@@ -68,7 +68,7 @@ public class TaskService {
     // Eliminar tareas completadas o expiradas
     @Transactional
     public void deleteCompletedExpiredTasks(User user) {
-        taskRepository.deleteAllCompletedOrExpiredTasks(user);
+        taskRepository.deleteAllCompletedOrExpiredTasks(user, TaskStatus.COMPLETED_OR_EXPIRED);
     }
 
     public Page<Task> getTasksByState(boolean completed, Pageable pageable) {
@@ -198,6 +198,7 @@ public class TaskService {
     public Task createTask(Task task) throws IOException {
         User user = getAuthenticatedUser();
         task.setUser(user);
+        task.setStatus(calculateStatus(task));
         Task savedTask = taskRepository.save(task);
 
         try {
@@ -220,7 +221,7 @@ public class TaskService {
         existingTask.setDescription(updatedTask.getDescription());
         existingTask.setCompleted(updatedTask.isCompleted());
         existingTask.setDueDate(updatedTask.getDueDate());
-        existingTask.setStatus(updatedTask.getStatus());
+        existingTask.setStatus(calculateStatus(existingTask));
         existingTask.setPriority(updatedTask.getPriority());
         existingTask.setGoogleCalendarEventId(updatedTask.getGoogleCalendarEventId());
 
@@ -327,5 +328,32 @@ public class TaskService {
 
         return addedCount + " tareas importadas, " + skippedCount + " tareas duplicadas e ignoradas.";
     }
+    @Transactional
+    public void deleteTasksByStatuses(User user, List<TaskStatus> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
+            return;
+        }
+
+        if (statuses.contains(TaskStatus.COMPLETED_OR_EXPIRED)) {
+            taskRepository.deleteAllCompletedOrExpiredTasks(user, TaskStatus.COMPLETED_OR_EXPIRED);
+            return;
+        }
+
+        taskRepository.deleteByUserAndStatusIn(user, statuses);
+    }
+
+    private TaskStatus calculateStatus(Task task) {
+        if (task.isCompleted()) {
+            if (task.getDueDate() != null && task.getDueDate().isBefore(LocalDate.now())) {
+                return TaskStatus.COMPLETED_OR_EXPIRED;
+            }
+            return TaskStatus.COMPLETED;
+        } else if (task.getDueDate() != null && task.getDueDate().isBefore(LocalDate.now())) {
+            return TaskStatus.EXPIRED;
+        } else {
+            return TaskStatus.PENDING;
+        }
+    }
+
 
 }

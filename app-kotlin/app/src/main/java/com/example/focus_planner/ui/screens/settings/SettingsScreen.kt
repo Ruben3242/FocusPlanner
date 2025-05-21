@@ -16,7 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,6 +28,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.example.focus_planner.data.model.User
+import com.example.focus_planner.data.model.task.TaskStatus
+import com.example.focus_planner.utils.SharedPreferencesManager.getToken
+import com.example.focus_planner.utils.SharedPreferencesManager.getUserId
 import com.example.focus_planner.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 import java.io.File
@@ -67,6 +75,27 @@ fun SettingsScreen(
 
     val exportedJson by viewModel.exportedJson.collectAsState()
     val importResult by viewModel.importResult.collectAsState()
+    var isDialogVisible by remember { mutableStateOf(false) }
+    var showStatusDialog by remember { mutableStateOf(false) }
+
+    val token = getToken(context)
+    val user by viewModel.user.collectAsState()
+
+    val isAutoDeleteEnabled = remember { mutableStateOf(false) }
+
+    LaunchedEffect(user) {
+        user?.let {
+            isAutoDeleteEnabled.value = it.removeCompletedExpiredTasks
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        val userId = getUserId(context)
+        if (user == null && userId != null && token != null) {
+            viewModel.loadUserById(userId, token)
+        }
+        viewModel.loadSelectedStatuses(context)
+    }
 
     // Lanzador para abrir selector de archivos para importar JSON
     val importLauncher = rememberLauncherForActivityResult(
@@ -80,6 +109,17 @@ fun SettingsScreen(
             }
         }
     }
+    if (user == null) {
+        // Usuario aún no cargado, mostrar loading
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
+        return // Salir del Composable para no renderizar el resto aún
+    }
+
 
     Scaffold(
         topBar = {
@@ -99,14 +139,109 @@ fun SettingsScreen(
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                SettingsOptionCard(
-                    icon = Icons.Default.CheckCircle,
-                    title = "Eliminar tareas completadas",
-                    description = "Borrar automáticamente las tareas una vez completadas",
-                    onClick = {
-                        // TODO: Activar switch en SettingsState
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AutoDelete,
+                                contentDescription = "Eliminación automática",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Eliminación automática de tareas", style = MaterialTheme.typography.titleSmall)
+                                Text(
+                                    text = "Elimina automáticamente tareas con estados seleccionados.",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+
+                            Switch(
+                                checked = isAutoDeleteEnabled.value,
+                                onCheckedChange = { newValue ->
+                                    isAutoDeleteEnabled.value = newValue
+                                    user?.let { currentUser ->
+                                        val updatedUser = currentUser.copy(removeCompletedExpiredTasks = newValue)
+                                        viewModel.updateUserSettings(updatedUser, token!!)
+                                    }
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Button(
+                            onClick = { showStatusDialog = true },
+                            modifier = Modifier.align(Alignment.End),
+                            enabled = isAutoDeleteEnabled.value,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isAutoDeleteEnabled.value)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.surface,
+                                contentColor = if (isAutoDeleteEnabled.value)
+                                    MaterialTheme.colorScheme.onPrimary
+                                else
+                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            )
+                        ) {
+                            Text("Seleccionar estados")
+                        }
+
+                        if (showStatusDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showStatusDialog = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        if (viewModel.selectedStatuses.isNotEmpty() && token != null) {
+                                            viewModel.deleteTasksByStatuses(token, viewModel.selectedStatuses.toList())
+//                                            viewModel.clearSelectedStatuses(context)
+                                        }
+                                        showStatusDialog = false
+                                    }) {
+                                        Text("Eliminar")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showStatusDialog = false }) {
+                                        Text("Cancelar")
+                                    }
+                                },
+                                title = { Text("Selecciona estados a eliminar") },
+                                text = {
+                                    Column {
+                                        TaskStatus.values()
+                                            .filter { it != TaskStatus.PENDING }
+                                            .forEach { status ->
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Checkbox(
+                                                        checked = viewModel.selectedStatuses.contains(status),
+                                                        onCheckedChange = {
+                                                            viewModel.toggleStatusSelection(context, status)
+                                                        }
+                                                    )
+
+                                                    Text(text = status.name)
+                                                }
+                                            }
+                                    }
+                                }
+                            )
+                        }
                     }
-                )
+                }
+
+
+
 
                 SettingsOptionCard(
                     icon = Icons.Default.Download,
@@ -132,7 +267,7 @@ fun SettingsScreen(
                     description = "¿Tienes dudas? Escríbenos por correo",
                     onClick = {
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("mailto:soporte@focusplanner.com")
+                            data = Uri.parse("focusplanner.welcome@gmail.com")
                             putExtra(Intent.EXTRA_SUBJECT, "Consulta desde la app FocusPlanner")
                         }
                         context.startActivity(intent)
@@ -222,7 +357,7 @@ fun SettingsOptionCard(
                 imageVector = icon,
                 contentDescription = title,
                 modifier = Modifier
-                    .size(28.dp)
+//                    .size(40.dp)
                     .padding(end = 16.dp),
                 tint = contentColor
             )

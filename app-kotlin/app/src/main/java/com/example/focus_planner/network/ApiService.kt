@@ -5,6 +5,7 @@ import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
 import com.example.focus_planner.data.model.task.TaskDto
+import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.data.model.task.TaskSummaryDTO
 import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.model.LoginResponse
@@ -40,7 +41,14 @@ interface ApiService {
         @Path("id") userId: String,
         @Header("Authorization") token: String,
         @Body updatedUser: User,
-    ): Response<Void>
+    ): Response<User>
+
+    @GET("api/users/{id}")
+    suspend fun getUserById(
+        @Path("id") userId: Long,
+        @Header("Authorization") token: String
+    ): Response<User>
+
 
     @POST("api/users/change-password")
     suspend fun changePassword(
@@ -70,12 +78,6 @@ interface ApiService {
 
     @GET("api/users/profile")
     suspend fun getUserProfile(@Header("Authorization") authorizationHeader: String): Response<User>
-//
-//    @GET("api/user/{id}")
-//    suspend fun getUserProfileID(
-//        @Path("id") userId: String,
-//        @Header("Authorization") token: String
-//    ): Response<User>
 
     //refrescar el token
     @POST("api/auth/refresh-token")
@@ -152,6 +154,10 @@ interface ApiService {
         @Body tasks: List<TaskDto>
     ): ResponseBody
 
-
+    @POST("/api/tasks/delete-by-status")
+    suspend fun deleteTasksByStatuses(
+        @Header("Authorization") token: String,
+        @Body statuses: List<String>
+    ): Response<ResponseBody>
 
 }

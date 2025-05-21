@@ -34,8 +34,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> , JpaSpecifica
     // Eliminar tareas completadas o expiradas del usuario
     @Modifying
     @Transactional
-    @Query("DELETE FROM Task t WHERE (t.completed = true OR t.dueDate < CURRENT_DATE) AND t.user = :user")
-    void deleteAllCompletedOrExpiredTasks(@Param("user") User user);
+    @Query("DELETE FROM Task t WHERE t.status = :status AND t.user = :user")
+    void deleteAllCompletedOrExpiredTasks(@Param("user") User user, @Param("status") TaskStatus status);
+
 
     void deleteByUserAndStatusIn(User user, List<TaskStatus> statuses);
 
