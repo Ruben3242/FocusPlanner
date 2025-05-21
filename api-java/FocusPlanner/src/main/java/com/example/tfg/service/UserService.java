@@ -109,10 +109,11 @@ public class UserService {
 
         return "User verified successfully!";
     }
+
     @Transactional
     public void deleteCompletedExpiredTasks(User user) {
         // Eliminar tareas completadas o vencidas para el usuario
-        taskRepository.deleteByUserAndStatusIn(user, List.of(TaskStatus.COMPLETED, TaskStatus.EXPIRED));
+        taskRepository.deleteByUserAndStatusIn(user, List.of(TaskStatus.COMPLETED/*, TaskStatus.EXPIRED*/));
     }
 
     public User getUserById(Long id) {

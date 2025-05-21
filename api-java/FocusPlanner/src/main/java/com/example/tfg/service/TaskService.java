@@ -6,6 +6,7 @@ import com.example.tfg.GogleCalendar.service.GoogleCalendarIntegration;
 import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
+import com.example.tfg.model.TaskDto;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.TaskRepository;
 import com.example.tfg.repository.UserRepository;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +46,7 @@ public class TaskService {
 
 
     // Obtener el usuario autenticado
-    private User getAuthenticatedUser() {
+    public User getAuthenticatedUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -253,6 +255,77 @@ public class TaskService {
     }
 
     public List<Task> getTasksBetweenDates(LocalDate start, LocalDate end) {
-        return taskRepository.findAllByDueDateBetween(start, end);
+        User user = getAuthenticatedUser();
+        return taskRepository.findByUserAndDueDateBetween(user, start, end);
     }
+
+    private TaskDto toDto(Task task) {
+        TaskDto dto = new TaskDto();
+        dto.setId(task.getId());
+        dto.setTitle(task.getTitle());
+        dto.setDescription(task.getDescription());
+        dto.setDueDate(task.getDueDate());
+        dto.setCompleted(task.isCompleted());
+        dto.setStatus(task.getStatus());
+        dto.setPriority(task.getPriority());
+        return dto;
+    }
+
+    // Convierte TaskDto a Task
+    private Task fromDto(TaskDto dto, Long userId) {
+        Task task = new Task();
+        task.setTitle(dto.getTitle());
+        task.setDescription(dto.getDescription());
+        task.setDueDate(dto.getDueDate());
+        task.setCompleted(dto.isCompleted());
+        task.setStatus(dto.getStatus());
+        task.setPriority(dto.getPriority());
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id " + userId));
+
+        task.setUser(user);
+        return task;
+    }
+
+
+    // Exportar tareas de un usuario
+    public List<TaskDto> exportTasksForUser(Long userId) {
+        List<Task> tasks = taskRepository.findByUserId(userId);
+        return tasks.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    // Importar tareas para un usuario
+    public String importTasksForUser(Long userId, List<TaskDto> taskDtos) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id " + userId));
+
+        int addedCount = 0;
+        int skippedCount = 0;
+
+        for (TaskDto dto : taskDtos) {
+            // Comprobar si ya existe una tarea con el mismo título para este usuario
+            boolean exists = taskRepository.existsByUserIdAndTitle(userId, dto.getTitle());
+
+            if (exists) {
+                skippedCount++;
+            } else {
+                Task task = new Task();
+                // No seteamos ID para que se genere nuevo
+                task.setTitle(dto.getTitle());
+                task.setDescription(dto.getDescription());
+                task.setDueDate(dto.getDueDate());
+                task.setCompleted(dto.isCompleted());
+                task.setStatus(dto.getStatus());
+                task.setPriority(dto.getPriority());
+                task.setUser(user);
+
+                taskRepository.save(task);
+                addedCount++;
+            }
+        }
+
+        return addedCount + " tareas importadas, " + skippedCount + " tareas duplicadas e ignoradas.";
+    }
+
 }

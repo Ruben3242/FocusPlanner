@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -106,6 +107,19 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
                         modifier = Modifier.weight(1f)
                     )
                 }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    NavCard(
+                        icon = Icons.Default.Settings,
+                        title = "Ajustes",
+                        onClick = { onNavigate("settings") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.weight(1f)) // Para equilibrar visualmente
+                }
+
             }
 
             Spacer(modifier = Modifier.weight(1f))

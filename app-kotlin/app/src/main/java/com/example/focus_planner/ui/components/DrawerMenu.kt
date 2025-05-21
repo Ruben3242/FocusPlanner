@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -114,6 +115,7 @@ fun MainScaffold(
                     MenuCard("Calendario", "calendar", navigateTo)
                     MenuCard("Perfil", "profile", navigateTo)
                     MenuCard("Pomodoro", "pomodoro", navigateTo)
+                    MenuCard("Ajustes", "settings", navigateTo)
 
                     Spacer(modifier = Modifier.weight(1f))
 
@@ -181,6 +183,7 @@ fun MenuCard(
         "calendar" -> Icons.Default.CalendarToday
         "profile" -> Icons.Default.Person
         "pomodoro" -> Icons.Default.Timer
+        "settings" -> Icons.Default.Settings
         else -> Icons.Default.Menu
     }
 

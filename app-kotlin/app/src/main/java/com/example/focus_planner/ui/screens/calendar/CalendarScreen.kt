@@ -6,9 +6,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -17,17 +22,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import androidx.navigation.NavController
+import com.example.focus_planner.data.model.task.Task
+import com.example.focus_planner.data.model.task.TaskPriority
+import com.example.focus_planner.ui.components.TopBarWithClose
+import com.example.focus_planner.ui.screens.home.AccentColor
+import com.example.focus_planner.ui.screens.home.BackgroundColor
+import com.example.focus_planner.ui.screens.home.CardColor
+import com.example.focus_planner.ui.screens.home.TextPrimary
+import com.example.focus_planner.ui.screens.home.TextSecondary
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import com.example.focus_planner.utils.TokenManager
 import com.example.focus_planner.viewmodel.CalendarViewModel
 import org.threeten.bp.*
+import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.TextStyle
 import java.util.*
 
 data class CalendarTask(val date: LocalDate, val title: String)
 
 @Composable
-fun CalendarScreen(viewModel: CalendarViewModel) {
+fun CalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
     val context = LocalContext.current
     val tasks by viewModel.tasks.collectAsState()
     val currentMonth by viewModel.currentYearMonth.collectAsState()
@@ -51,104 +66,119 @@ fun CalendarScreen(viewModel: CalendarViewModel) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF121212))
-            .padding(16.dp)
-    ) {
-        Header(
-            month = currentMonth,
-            onPreviousMonth = {
-                if (token != null) {
-                    viewModel.onMonthChanged(currentMonth.minusMonths(1),token)
-                }
-            },
-            onNextMonth = {
-                if (token != null) {
-                    viewModel.onMonthChanged(currentMonth.plusMonths(1),token)
-                }
-            }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        DayOfWeekHeader()
-
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(7),
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(4.dp)
-        ) {
-            repeat(startOffset) {
-                item { Box(modifier = Modifier.size(48.dp)) }
-            }
-
-            items(days) { date ->
-                val dayTasks = tasks.filter { it.date == date }
-                val isToday = date == today
-                val isPast = date.isBefore(today)
-
-                DayCell(
-                    date = date,
-                    isToday = isToday,
-                    hasTask = dayTasks.isNotEmpty(),
-                    isExpired = isPast && dayTasks.isNotEmpty(),
-                    taskCount = dayTasks.size,
-                    onClick = { selectedDate = date }
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            LegendItem(color = Color(0xFFE53935), label = "Expirada")
-            LegendItem(color = Color(0xFF43A047), label = "Pendiente")
-            LegendItem(color = Color(0xFF1E88E5), label = "Hoy")
-        }
-
-
-        selectedDate?.let { date ->
-            val dayTasks = tasks.filter { it.date == date }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Tareas para ${date.dayOfMonth}/${date.monthValue}/${date.year}",
-                color = Color.White,
-                style = MaterialTheme.typography.titleMedium
+    Scaffold(
+        topBar = {
+            CalendarTopBar(
+                navController = navController
             )
-            if (dayTasks.isNotEmpty()) {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
-                    dayTasks.forEach {
-                        Text(
-                            text = "• ${it.title}",
-                            color = Color.LightGray,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+        }, modifier = Modifier
+            .fillMaxSize()
+            .background(color = BackgroundColor)
+
+            ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF121212)).padding(padding)
+                .padding(16.dp)
+        ) {
+            Header(
+                month = currentMonth,
+                onPreviousMonth = {
+                    if (token != null) {
+                        viewModel.onMonthChanged(currentMonth.minusMonths(1), token)
+                    }
+                },
+                onNextMonth = {
+                    if (token != null) {
+                        viewModel.onMonthChanged(currentMonth.plusMonths(1), token)
                     }
                 }
-            } else {
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            DayOfWeekHeader()
+
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(7),
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(4.dp)
+            ) {
+                repeat(startOffset) {
+                    item { Box(modifier = Modifier.size(48.dp)) }
+                }
+
+                items(days) { date ->
+                    val dayTasks = tasks.filter { it.date == date }
+                    val isToday = date == today
+                    val isPast = date.isBefore(today)
+
+                    DayCell(
+                        date = date,
+                        isToday = isToday,
+                        hasTask = dayTasks.isNotEmpty(),
+                        isExpired = isPast && dayTasks.isNotEmpty(),
+                        taskCount = dayTasks.size,
+                        onClick = { selectedDate = date }
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                LegendItem(color = Color(0xFFE53935), label = "Expirada")
+                LegendItem(color = Color(0xFF43A047), label = "Pendiente")
+                LegendItem(color = Color(0xFF1E88E5), label = "Hoy")
+                LegendItem(color = Color.Black, label = "Múltiples tareas", hasBorder = true)
+            }
+
+
+            selectedDate?.let { date ->
+                val dayTasks = tasks.filter { it.date == date }
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "No hay tareas para este día.",
-                    color = Color.Gray,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
+                    text = "Tareas para ${date.dayOfMonth}/${date.monthValue}/${date.year}",
+                    color = Color.White,
+                    style = MaterialTheme.typography.titleMedium
                 )
+                if (dayTasks.isNotEmpty()) {
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        dayTasks.forEach {
+                            Text(
+                                text = "• ${it.title}",
+                                color = Color.LightGray,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = "No hay tareas para este día.",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun LegendItem(color: Color, label: String) {
+fun LegendItem(color: Color, label: String, hasBorder: Boolean = false) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .size(12.dp)
+                .size(16.dp)
+                .then(
+                    if (hasBorder) Modifier.border(2.dp, Color.White, CircleShape) else Modifier
+                )
                 .background(color = color, shape = CircleShape)
         )
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(6.dp))
         Text(text = label, color = Color.White, fontSize = 12.sp)
     }
 }
@@ -165,7 +195,7 @@ fun Header(month: YearMonth, onPreviousMonth: () -> Unit, onNextMonth: () -> Uni
             Icon(Icons.Default.ArrowBack, contentDescription = "Anterior", tint = Color.White)
         }
         Text(
-            text = "${month.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${month.year}",
+            text = "${month.month.getDisplayName(TextStyle.FULL, Locale("es"))} ${month.year}",
             style = MaterialTheme.typography.titleLarge,
             color = Color.White
         )
@@ -184,7 +214,7 @@ fun DayOfWeekHeader() {
     Row(modifier = Modifier.fillMaxWidth()) {
         for (day in daysOfWeek) {
             Text(
-                text = day.getDisplayName(TextStyle.SHORT, Locale.getDefault()),
+                text = day.getDisplayName(TextStyle.SHORT, Locale("es")),
                 modifier = Modifier
                     .weight(1f)
                     .padding(4.dp),
@@ -263,3 +293,32 @@ fun CalendarLegend() {
     }
 }
 
+@Composable
+fun CalendarTopBar(
+    navController: NavController
+) {
+    val barHeight = 48.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = "Calendario de tareas",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+        IconButton(onClick = { navController.navigate("home") }) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Cerrar",
+                tint = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}

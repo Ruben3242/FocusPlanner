@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.example.focus_planner.data.model.User
+import org.threeten.bp.LocalDate
 
 @Entity(tableName = "task_table")
 data class Task(
@@ -24,6 +25,16 @@ data class Task(
 data class TaskSummaryDTO(
     val dueDate: String,  // Recibiremos la fecha en formato ISO, la parseamos luego a LocalDate
     val title: String
+)
+
+data class TaskDto(
+    var id: Long? = null, // Optional, to import if you want to update (can be null to create)
+    var title: String,
+    var description: String,
+    val dueDate: String?,  // en vez de Date u otro tipo
+    var completed: Boolean,
+    var status: TaskStatus,
+    var priority: TaskPriority
 )
 
 

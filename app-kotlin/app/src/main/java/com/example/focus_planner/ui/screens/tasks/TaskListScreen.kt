@@ -165,15 +165,39 @@ fun TaskListScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Mostrar tareas completadas
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = showCompleted,
-                    onCheckedChange = {
-                        showCompleted = it
-                        viewModel.setShowCompleted(it)
-                    }
-                )
-                Text("Mostrar tareas completadas")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp, horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = showCompleted,
+                        onCheckedChange = {
+                            showCompleted = it
+                            viewModel.setShowCompleted(it)
+                        }
+                    )
+                    Text("Mostrar tareas completadas")
+                }
+
+                IconButton(
+                    onClick = { navController.navigate("addTask") },
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = MaterialTheme.shapes.small
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Añadir tarea",
+                        tint = Color.White
+                    )
+                }
             }
 
 
@@ -215,28 +239,6 @@ fun TaskListScreen(
                     }
                 }
             }
-            // FAB para añadir tareas (superpuesto en la esquina inferior derecha)
-            Box(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                ) {
-
-                }
-
-                FloatingActionButton(
-                    onClick = { navController.navigate("addTask") },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(20.dp)
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Añadir tarea")
-                }
-            }
-
         }
     }
 

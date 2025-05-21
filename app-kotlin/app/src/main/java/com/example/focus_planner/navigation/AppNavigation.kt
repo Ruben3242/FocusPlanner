@@ -23,6 +23,7 @@ import com.example.focus_planner.ui.screens.calendar.CalendarScreen
 import com.example.focus_planner.ui.screens.home.MainScreen
 import com.example.focus_planner.ui.screens.organizacion.PomodoroScreen
 import com.example.focus_planner.ui.screens.profile.ProfileScreen
+import com.example.focus_planner.ui.screens.settings.SettingsScreen
 import com.example.focus_planner.ui.screens.tasks.AddTaskScreen
 import com.example.focus_planner.ui.screens.tasks.EditTaskScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
@@ -30,6 +31,7 @@ import com.example.focus_planner.ui.screens.tasks.TaskListScreen
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.viewmodel.CalendarViewModel
 import com.example.focus_planner.viewmodel.ProfileViewModel
+import com.example.focus_planner.viewmodel.SettingsViewModel
 import com.example.focus_planner.viewmodel.TaskViewModel
 import com.example.focus_planner.viewmodel.UserViewModel
 
@@ -100,7 +102,7 @@ fun AppNavigation(
 
             composable("calendar") {
                 val calendarViewModel: CalendarViewModel = hiltViewModel()
-                CalendarScreen(calendarViewModel)
+                CalendarScreen(calendarViewModel,navController= navController)
             }
             // Aquí instanciamos ProfileViewModel usando viewModel() y pasando ApiService a través de RetrofitInstance
             composable("profile") {
@@ -134,6 +136,10 @@ fun AppNavigation(
                 PomodoroScreen(
                     navController = navController,
                 )
+            }
+            composable("settings") {
+                val settingsViewModel: SettingsViewModel = hiltViewModel()
+                SettingsScreen(navController, settingsViewModel) // Asegúrate de tener esta pantalla creada
             }
 
         }

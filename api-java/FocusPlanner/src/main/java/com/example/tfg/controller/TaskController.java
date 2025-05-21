@@ -3,6 +3,7 @@ package com.example.tfg.controller;
 import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
+import com.example.tfg.model.TaskDto;
 import com.example.tfg.service.TaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,6 +12,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -72,7 +75,20 @@ public class TaskController {
         return ResponseEntity.ok(tasks);
     }
 
+    @GetMapping("/export")
+    public ResponseEntity<List<TaskDto>> exportTasks() {
+        Long userId = taskService.getAuthenticatedUser().getId();
+        List<TaskDto> exported = taskService.exportTasksForUser(userId);
+        return ResponseEntity.ok(exported);
+    }
 
+    // Importar tareas (recibe lista de TaskDto)
+    @PostMapping("/import")
+    public ResponseEntity<String> importTasks(@RequestBody List<TaskDto> tasksDto) {
+        Long userId = taskService.getAuthenticatedUser().getId();
+        String result = taskService.importTasksForUser(userId, tasksDto);
+        return ResponseEntity.ok(result);
+    }
 
     // Obtener una tarea específica por ID
     @GetMapping("/{id}")
