@@ -17,6 +17,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -37,9 +38,9 @@ import java.util.Calendar
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.focus_planner.ui.components.TopBarWithClose
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditTaskScreen(
     taskId: Long,
@@ -71,94 +72,81 @@ fun EditTaskScreen(
             isCompleted = it.completed ?: false
         }
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
-        // Encabezado
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Button(
-                onClick = onBackClick,
-                modifier = Modifier.padding(end = 16.dp)
-            ) {
-                Text("Volver")
-            }
-            Text(
-                text = "Editar tarea",
-                style = MaterialTheme.typography.titleLarge,
-                color = androidx.compose.ui.graphics.Color.Black
+    Scaffold(
+        topBar = {
+            TopBarWithClose(
+                title = "Editar tarea",
+                onCloseClick = onBackClick
             )
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        styledTextField(title, { title = it }, "Título")
-        styledTextField(description, { description = it }, "Descripción")
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DatePickerField(
-            selectedDate = dueDate,
-            onDateSelected = { dueDate = it }
-        )
-
-//        Spacer(modifier = Modifier.height(12.dp))
-//
-//        DropdownSelector(
-//            label = "Estado",
-//            options = TaskStatus.entries.map { it.name },
-//            selectedValue = status.name,
-//            onValueChanged = { status = TaskStatus.valueOf(it!!) }
-//        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DropdownSelector(
-            label = "Prioridad",
-            options = TaskPriority.entries.map { it.name },
-            selectedValue = priority.name,
-            onValueChanged = { priority = TaskPriority.valueOf(it!!) }
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = isCompleted,
-                onCheckedChange = { isCompleted = it }
-            )
-            Text("¿Completada?")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                if (title.isNotBlank() && description.isNotBlank()) {
-                    val updatedTask = task?.copy(
-                        title = title,
-                        description = description,
-                        dueDate = dueDate,
-                        completed = isCompleted,
-                        status = status,
-                        priority = priority
-                    )
-                    updatedTask?.let {
-                        viewModel.updateTask(updatedTask, context)
-                        onTaskUpdated()
-                    }
-                } else {
-                    Toast.makeText(context, "Título y descripción requeridos", Toast.LENGTH_SHORT).show()
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text("Actualizar tarea")
+
+
+            styledTextField(title, { title = it }, "Título")
+            styledTextField(description, { description = it }, "Descripción")
+
+            DatePickerField(
+                selectedDate = dueDate,
+                onDateSelected = { dueDate = it }
+            )
+
+            DropdownSelector(
+                label = "Prioridad",
+                options = TaskPriority.entries.map { it.name },
+                selectedValue = priority.name,
+                onValueChanged = { priority = TaskPriority.valueOf(it!!) }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    checked = isCompleted,
+                    onCheckedChange = { isCompleted = it }
+                )
+                Text("¿Completada?")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    if (title.isNotBlank() && description.isNotBlank()) {
+                        val updatedTask = task?.copy(
+                            title = title,
+                            description = description,
+                            dueDate = dueDate,
+                            completed = isCompleted,
+                            status = status,
+                            priority = priority
+                        )
+                        updatedTask?.let {
+                            viewModel.updateTask(updatedTask, context)
+                            onTaskUpdated()
+                        }
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Título y descripción requeridos",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Actualizar tarea")
+            }
         }
     }
 }
+
 @Composable
 fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
     OutlinedTextField(

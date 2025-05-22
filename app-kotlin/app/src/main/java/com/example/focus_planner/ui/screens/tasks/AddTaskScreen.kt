@@ -4,12 +4,15 @@ package com.example.focus_planner.ui.screens.tasks
 import android.app.DatePickerDialog
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -26,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.example.focus_planner.data.model.task.Task
@@ -82,7 +86,7 @@ fun AddTaskScreen(
         }
     ) { padding ->
         Column(
-            modifier = modifier.fillMaxSize().padding(padding).padding(8.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
@@ -210,17 +214,38 @@ fun DatePickerField(
         )
     }
 
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .clickable { datePickerDialog.show() }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
     ) {
-        OutlinedTextField(
-            value = selectedDate,
-            onValueChange = {},
-            label = { Text(label) },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = false, // Deshabilitado para que no abra el teclado
-            readOnly = true
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
         )
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(2.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .border(
+                    width = 1.dp,
+                    color = Color.Gray,
+                    shape = RoundedCornerShape(2.dp)
+                )
+                .clickable { datePickerDialog.show() }
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Text(
+                text = if (selectedDate.isNotEmpty()) selectedDate else "Seleccionar fecha",
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (selectedDate.isNotEmpty()) MaterialTheme.colorScheme.onSurface
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
+
