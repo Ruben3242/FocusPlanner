@@ -104,14 +104,14 @@ fun EditTaskScreen(
             onDateSelected = { dueDate = it }
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DropdownSelector(
-            label = "Estado",
-            options = TaskStatus.entries.map { it.name },
-            selectedValue = status.name,
-            onValueChanged = { status = TaskStatus.valueOf(it!!) }
-        )
+//        Spacer(modifier = Modifier.height(12.dp))
+//
+//        DropdownSelector(
+//            label = "Estado",
+//            options = TaskStatus.entries.map { it.name },
+//            selectedValue = status.name,
+//            onValueChanged = { status = TaskStatus.valueOf(it!!) }
+//        )
 
         Spacer(modifier = Modifier.height(12.dp))
 

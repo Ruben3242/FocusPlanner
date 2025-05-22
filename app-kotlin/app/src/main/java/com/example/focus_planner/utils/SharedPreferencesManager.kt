@@ -1,6 +1,7 @@
 package com.example.focus_planner.utils
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import com.auth0.jwt.JWT
 import com.auth0.jwt.interfaces.DecodedJWT
@@ -192,6 +193,18 @@ object SharedPreferencesManager {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().remove(KEY_SELECTED_STATUSES).apply()
     }
+
+    fun saveProfileImageUri(context: Context, uri: Uri?) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString("profile_image_uri", uri?.toString()).apply()
+    }
+
+    fun loadProfileImageUri(context: Context): Uri? {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val uriString = prefs.getString("profile_image_uri", null)
+        return uriString?.let { Uri.parse(it) }
+    }
+
 
 
 }

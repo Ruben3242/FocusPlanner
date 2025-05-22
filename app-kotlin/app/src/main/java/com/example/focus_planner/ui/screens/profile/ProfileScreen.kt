@@ -1,13 +1,22 @@
 package com.example.focus_planner.ui.screens.profile
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
@@ -24,20 +33,29 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import com.example.focus_planner.R
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.ui.screens.tasks.TaskListTopBar
 import com.example.focus_planner.utils.SharedPreferencesManager
+import com.example.focus_planner.utils.SharedPreferencesManager.loadProfileImageUri
+import com.example.focus_planner.utils.SharedPreferencesManager.saveProfileImageUri
 import com.example.focus_planner.utils.TokenManager
 import com.example.focus_planner.viewmodel.ProfileViewModel
 
@@ -127,7 +145,8 @@ fun ProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-
+                Spacer(modifier = Modifier.height(30.dp))
+                ProfileImagePicker()
 
                 @Composable
                 fun styledTextField(value: String, onValueChange: (String) -> Unit, label: String) {
@@ -148,7 +167,7 @@ fun ProfileScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(30.dp))
+
                 styledTextField(newUsername, { newUsername = it }, "Username")
                 styledTextField(newEmail, { newEmail = it }, "Email")
                 styledTextField(newFirstname, { newFirstname = it }, "Firstname")
@@ -496,3 +515,90 @@ fun ChangePasswordDialog(
         )
     }
 }
+@Composable
+fun ProfileImagePicker(
+    modifier: Modifier = Modifier,
+    defaultImageRes: Int = R.drawable.user,
+) {
+    val context = LocalContext.current
+    var selectedImageUri by rememberSaveable {
+        mutableStateOf(loadProfileImageUri(context)) // Cargamos desde prefs
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            // Persistimos el permiso
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                e.printStackTrace()
+            }
+
+            // Guardamos en SharedPreferences
+            selectedImageUri = uri
+            saveProfileImageUri(context, uri)
+        }
+    }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        // Imagen circular
+        Box(
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
+                .background(Color.LightGray)
+                .clickable { launcher.launch(arrayOf("image/*")) } // abrimos documentos
+        ) {
+            if (selectedImageUri != null) {
+                Image(
+                    painter = rememberAsyncImagePainter(model = selectedImageUri),
+                    contentDescription = "Imagen de perfil",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                )
+            } else {
+                Image(
+                    painter = painterResource(id = defaultImageRes),
+                    contentDescription = "Imagen de perfil por defecto",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape)
+                )
+            }
+        }
+
+        // Icono de edición estilizado
+        Icon(
+            imageVector = Icons.Default.Edit,
+            contentDescription = "Cambiar imagen",
+            tint = Color.White,
+            modifier = Modifier
+                .size(36.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = (-10).dp, y = (-10).dp)
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(Color(0xFF4CAF50), Color(0xFF81C784))
+                    ),
+                    shape = CircleShape
+                )
+                .border(2.dp, Color.White, CircleShape)
+                .padding(6.dp)
+                .clickable { launcher.launch(arrayOf("image/*")) }
+        )
+    }
+}
+
+
+

@@ -58,11 +58,12 @@ fun AppNavigation(
                 MainScreen(
                     onNavigate = { route ->
                         navController.navigate(route) {
-                            popUpTo("home") { inclusive = true }
+                            popUpTo("home") { inclusive = false }
                         }
                     },
                     navController = navController
                 )
+
             }
             composable("tasks") {
                 val context = LocalContext.current

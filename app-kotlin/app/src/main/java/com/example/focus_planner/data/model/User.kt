@@ -18,7 +18,9 @@ data class User(
     @ColumnInfo(name = "is_verified") val isVerified: Boolean= true,
     @ColumnInfo(name = "verification_token") val verificationToken: String?,
     @ColumnInfo(name = "remove_completed_expired_tasks") val removeCompletedExpiredTasks: Boolean,
-    @ColumnInfo(name = "Task_list") val taskList: List<Task>? = null
+    @ColumnInfo(name = "Task_list") val taskList: List<Task>? = null,
+    val imageUri: String? = null
+
 )
 data class UpdateSettingsRequest(
     val removeCompletedExpiredTasks: Boolean

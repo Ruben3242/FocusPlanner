@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddToPhotos
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Logout
@@ -117,9 +118,13 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
                         onClick = { onNavigate("settings") },
                         modifier = Modifier.weight(1f)
                     )
-                    Spacer(modifier = Modifier.weight(1f)) // Para equilibrar visualmente
+                    NavCard(
+                        icon = Icons.Default.AddToPhotos,
+                        title = "Crear tareas",
+                        onClick = { onNavigate("addTask") },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
-
             }
 
             Spacer(modifier = Modifier.weight(1f))

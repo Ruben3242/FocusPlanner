@@ -120,14 +120,14 @@ fun AddTaskScreen(
                 onDateSelected = { dueDate = it }
             )
 
-            // Dropdowns para Estado y Prioridad
-            DropdownSelector(
-                label = "Estado",
-                options = TaskStatus.entries.map { it.name },
-                selectedValue = status.name,
-                onValueChanged = { status = it?.let { it1 -> TaskStatus.valueOf(it1) }!! },
-                modifier = Modifier.fillMaxWidth()
-            )
+//            // Dropdowns para Estado y Prioridad
+//            DropdownSelector(
+//                label = "Estado",
+//                options = TaskStatus.entries.map { it.name },
+//                selectedValue = status.name,
+//                onValueChanged = { status = it?.let { it1 -> TaskStatus.valueOf(it1) }!! },
+//                modifier = Modifier.fillMaxWidth()
+//            )
 
             DropdownSelector(
                 label = "Prioridad",
