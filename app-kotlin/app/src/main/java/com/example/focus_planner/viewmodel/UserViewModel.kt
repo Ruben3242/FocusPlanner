@@ -190,9 +190,9 @@ class UserViewModel @Inject constructor(
     }
 
     // Función para obtener el token almacenado en la base de datos
-    suspend fun getToken(email: String) {
-        userRepository.deleteTokenByEmail(email)
-    }
+//    suspend fun getToken(email: String) {
+//        userRepository.deleteTokenByEmail(email)
+//    }
 
     // Función para eliminar el token de la base de datos (logout)
     fun removeToken(email: String) {

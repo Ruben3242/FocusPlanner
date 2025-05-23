@@ -26,8 +26,9 @@ data class Task(
 )
 
 data class TaskSummaryDTO(
-    val dueDate: String,  // Recibiremos la fecha en formato ISO, la parseamos luego a LocalDate
-    val title: String
+    val id: Long,
+    val title: String,
+    val dueDate: String
 )
 
 data class TaskDto(
@@ -46,3 +47,8 @@ data class UserStatsResponse(
     val mostProductiveHour: Int
 )
 
+data class CalendarTask(
+    val id: Long,
+    val date: LocalDate,
+    val title: String
+)

@@ -4,11 +4,11 @@ import android.content.Context
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.focus_planner.data.model.task.CalendarTask
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskSummaryDTO
 import com.example.focus_planner.data.repository.TaskRepository
 import com.example.focus_planner.network.ApiService
-import com.example.focus_planner.ui.screens.calendar.CalendarTask
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,12 +40,13 @@ class CalendarViewModel  @Inject constructor(private val repository: TaskReposit
             val endDate = yearMonth.atEndOfMonth()
             val fullTasks: List<Task> = repository.getTasksByDateRange(startDate, endDate, token)
 
-            // Mapear de Task (completo) a TaskSummaryDTO (solo título y fecha)
-            val taskSummaries = fullTasks.map {
-                it.dueDate?.let { it1 ->
+
+            val taskSummaries = fullTasks.mapNotNull { task ->
+                task.dueDate?.let { dueDate ->
                     TaskSummaryDTO(
-                        title = it.title,
-                        dueDate = it1
+                        id = task.id,
+                        title = task.title,
+                        dueDate = dueDate
                     )
                 }
             }
@@ -54,7 +55,7 @@ class CalendarViewModel  @Inject constructor(private val repository: TaskReposit
             val calendarTasks = taskSummaries.mapNotNull { summary ->
                 val date = summary?.dueDate?.let { LocalDate.parse(it) }
                 if (date != null) {
-                    CalendarTask(date, summary.title)
+                    CalendarTask(summary.id,date, summary.title)
                 } else {
                     null
                 }

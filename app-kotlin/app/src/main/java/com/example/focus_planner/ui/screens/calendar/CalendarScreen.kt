@@ -5,8 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
@@ -21,8 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
+import com.example.focus_planner.data.model.task.CalendarTask
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.ui.components.TopBarWithClose
@@ -38,8 +42,6 @@ import org.threeten.bp.*
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.TextStyle
 import java.util.*
-
-data class CalendarTask(val date: LocalDate, val title: String)
 
 @Composable
 fun CalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
@@ -138,20 +140,35 @@ fun CalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
 
             selectedDate?.let { date ->
                 val dayTasks = tasks.filter { it.date == date }
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Tareas para ${date.dayOfMonth}/${date.monthValue}/${date.year}",
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium
                 )
+
                 if (dayTasks.isNotEmpty()) {
-                    Column(modifier = Modifier.padding(top = 8.dp)) {
-                        dayTasks.forEach {
-                            Text(
-                                text = "• ${it.title}",
-                                color = Color.LightGray,
-                                style = MaterialTheme.typography.bodyMedium
-                            )
+                    val maxHeight = 3 * 88.dp
+
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .fillMaxWidth()
+                            .heightIn(max = maxHeight)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Column(modifier = Modifier.padding(top = 8.dp)) {
+                            dayTasks.forEach { task ->
+                                TaskCard(
+                                    task = task,
+                                    onClick = {
+                                        navController.navigate("taskDetailScreen/${task.id}")
+                                    }
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
                         }
                     }
                 } else {
@@ -163,6 +180,36 @@ fun CalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TaskCard(task: CalendarTask, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Gray,
+            contentColor = TextPrimary
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = task.title,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "Fecha: ${task.date.dayOfMonth}/${task.date.monthValue}/${task.date.year}",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.LightGray
+            )
         }
     }
 }
@@ -270,28 +317,6 @@ fun DayCell(
     }
 }
 
-@Composable
-fun CalendarLegend() {
-    Column(modifier = Modifier.padding(top = 16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(12.dp).background(Color(0xFF43A047)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Día con tareas pendientes", color = Color.White)
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(12.dp).background(Color(0xFF1E88E5)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Hoy", color = Color.White)
-        }
-        Spacer(modifier = Modifier.height(4.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(12.dp).background(Color(0xFFE53935)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Tareas expiradas", color = Color.White)
-        }
-    }
-}
 
 @Composable
 fun CalendarTopBar(
