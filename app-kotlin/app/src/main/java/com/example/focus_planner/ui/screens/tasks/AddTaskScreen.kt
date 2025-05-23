@@ -2,8 +2,11 @@ package com.example.focus_planner.ui.screens.tasks
 
 
 import android.app.DatePickerDialog
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -32,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.data.model.task.TaskStatus
@@ -39,6 +44,14 @@ import com.example.focus_planner.ui.components.TopBarWithClose
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.viewmodel.TaskViewModel
 import java.util.Calendar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Image
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material3.Icon
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.foundation.Image
 
 @Composable
 fun AddTaskScreen(
@@ -54,7 +67,21 @@ fun AddTaskScreen(
     var priority by remember { mutableStateOf(TaskPriority.MEDIUM) } // Puedes agregar las opciones del enum de prioridad
     var isCompleted by remember { mutableStateOf(false) }
 
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+    var videoUri by remember { mutableStateOf<Uri?>(null) }
+    var audioUri by remember { mutableStateOf<Uri?>(null) }
 
+    val imageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri -> imageUri = uri }
+
+    val videoLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri -> videoUri = uri }
+
+    val audioLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri -> audioUri = uri }
 
     val context = LocalContext.current
     val creationSuccess by viewModel.creationSuccess.collectAsState()
@@ -148,6 +175,40 @@ fun AddTaskScreen(
                 )
                 Text("Completada")
             }
+//            Spacer(modifier = Modifier.height(16.dp))
+//
+//            Text("Adjuntar archivos:", fontWeight = FontWeight.Bold)
+//            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+//                IconButton(onClick = { imageLauncher.launch("image/*") }) {
+//                    Icon(Icons.Default.Image, contentDescription = "Imagen")
+//                }
+//                IconButton(onClick = { videoLauncher.launch("video/*") }) {
+//                    Icon(Icons.Default.VideoLibrary, contentDescription = "Vídeo")
+//                }
+//                IconButton(onClick = { audioLauncher.launch("audio/*") }) {
+//                    Icon(Icons.Default.Mic, contentDescription = "Audio")
+//                }
+//            }
+//
+//            // Previsualizaciones
+//            imageUri?.let {
+//                Text("Imagen seleccionada:")
+//                Image(
+//                    painter = rememberAsyncImagePainter(it),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(120.dp)
+//                        .padding(top = 8.dp)
+//                )
+//            }
+//
+//            videoUri?.let {
+//                Text("Vídeo seleccionado: ${it.lastPathSegment}", fontSize = 14.sp)
+//            }
+//
+//            audioUri?.let {
+//                Text("Audio seleccionado: ${it.lastPathSegment}", fontSize = 14.sp)
+//            }
 
             Spacer(modifier = Modifier.height(16.dp))
 

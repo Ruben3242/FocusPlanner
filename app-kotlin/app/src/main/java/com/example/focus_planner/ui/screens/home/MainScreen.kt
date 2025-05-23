@@ -25,9 +25,29 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
 import com.example.focus_planner.utils.TokenManager
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.charts.RadarChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.data.Entry
+import com.github.mikephil.charting.data.LineData
+import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.data.RadarData
+import com.github.mikephil.charting.data.RadarDataSet
+import com.github.mikephil.charting.data.RadarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.formatter.PercentFormatter
 
 // Paleta colores
 val BackgroundColor = Color.White // Gris oscuro más claro que antes
@@ -126,27 +146,161 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
                     )
                 }
             }
-
+//            TaskPieChart()
+            TaskBarChart()
+//            TaskLineChart()
             Spacer(modifier = Modifier.weight(1f))
-
-            // Botón Logout estilizado
-            TextButton(
-                onClick = {
-                    clearSession(context)
-                    onNavigate("login")
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.textButtonColors(contentColor = AccentColor),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Default.Logout, contentDescription = "Cerrar sesión")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Cerrar sesión", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
-            }
         }
     }
+}
+
+//Screen perfil
+@Composable
+fun TaskPieChart() {
+    AndroidView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(top = 24.dp),
+        factory = { context ->
+            PieChart(context).apply {
+                description.isEnabled = false
+                isRotationEnabled = true
+                setUsePercentValues(true)
+                setEntryLabelColor(android.graphics.Color.DKGRAY)
+                setCenterText("Tareas")
+                setCenterTextSize(18f)
+                setCenterTextColor(android.graphics.Color.parseColor("#1565C0"))
+                setHoleColor(android.graphics.Color.TRANSPARENT)
+                animateY(1000)
+
+                val entries = listOf(
+                    PieEntry(60f, "Completadas"),
+                    PieEntry(40f, "Pendientes")
+                )
+
+                val dataSet = PieDataSet(entries, "")
+                dataSet.colors = listOf(
+                    android.graphics.Color.parseColor("#1565C0"), // azul medio
+                    android.graphics.Color.parseColor("#64B5F6")  // azul claro
+                )
+
+                dataSet.valueTextColor = android.graphics.Color.WHITE
+                dataSet.valueTextSize = 14f
+                dataSet.sliceSpace = 3f
+                dataSet.selectionShift = 5f
+
+                val data = PieData(dataSet)
+                data.setValueFormatter(PercentFormatter(this))
+                this.data = data
+
+                this.setDrawEntryLabels(true)
+                this.setEntryLabelTextSize(12f)
+                this.setEntryLabelColor(android.graphics.Color.DKGRAY)
+
+                this.legend.isEnabled = true
+                this.legend.textColor = android.graphics.Color.DKGRAY
+                this.legend.textSize = 14f
+
+                this.notifyDataSetChanged()
+                this.invalidate()
+            }
+        }
+    )
+}
+
+@Composable
+fun TaskLineChart() {
+    AndroidView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(top = 24.dp),
+        factory = { context ->
+            LineChart(context).apply {
+                description.isEnabled = false
+                animateX(1000)
+
+                val entries = listOf(
+                    Entry(0f, 1f),
+                    Entry(1f, 3f),
+                    Entry(2f, 2f),
+                    Entry(3f, 5f),
+                    Entry(4f, 4f),
+                    Entry(5f, 2f),
+                    Entry(6f, 6f)
+                )
+
+                val dataSet = LineDataSet(entries, "Tareas por día")
+                dataSet.color = android.graphics.Color.parseColor("#1565C0")
+                dataSet.setCircleColor(android.graphics.Color.parseColor("#1565C0"))
+                dataSet.lineWidth = 2f
+                dataSet.circleRadius = 4f
+                dataSet.setDrawFilled(true)
+                dataSet.fillColor = android.graphics.Color.parseColor("#1565C0")
+
+                val data = LineData(dataSet)
+                this.data = data
+
+                val days = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+                val xAxis = this.xAxis
+                xAxis.valueFormatter = IndexAxisValueFormatter(days)
+                xAxis.position = XAxis.XAxisPosition.BOTTOM
+                xAxis.granularity = 1f
+                xAxis.labelCount = days.size
+
+                this.axisRight.isEnabled = false
+                this.invalidate()
+            }
+        }
+    )
+}
+
+
+@Composable
+fun TaskBarChart() {
+    AndroidView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(top = 24.dp),
+        factory = { context ->
+            BarChart(context).apply {
+                description.isEnabled = false
+                setFitBars(true)
+                animateY(1000)
+
+                val entries = listOf(
+                    BarEntry(0f, 3f),
+                    BarEntry(1f, 5f),
+                    BarEntry(2f, 2f),
+                    BarEntry(3f, 4f),
+                    BarEntry(4f, 1f),
+                    BarEntry(5f, 0f),
+                    BarEntry(6f, 6f)
+                )
+
+                val dataSet = BarDataSet(entries, "Tareas completadas")
+                dataSet.color = android.graphics.Color.parseColor("#1565C0")
+                val barData = BarData(dataSet)
+                barData.barWidth = 0.9f
+
+                this.data = barData
+
+                val days = listOf("Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom")
+                val xAxis = this.xAxis
+                xAxis.valueFormatter = IndexAxisValueFormatter(days)
+                xAxis.position = XAxis.XAxisPosition.BOTTOM
+                xAxis.setDrawGridLines(false)
+                xAxis.granularity = 1f
+                xAxis.labelCount = days.size
+
+                this.axisLeft.axisMinimum = 0f
+                this.axisRight.isEnabled = false
+                this.invalidate()
+            }
+        }
+    )
 }
 
 @Composable

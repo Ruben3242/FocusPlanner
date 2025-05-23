@@ -9,7 +9,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -79,6 +81,8 @@ fun SettingsScreen(
     var isDialogVisible by remember { mutableStateOf(false) }
     var showStatusDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showImportConfirmationDialog by remember { mutableStateOf(false) }
+
 
     val token = getToken(context)
     val user by viewModel.user.collectAsState()
@@ -97,6 +101,15 @@ fun SettingsScreen(
             viewModel.loadUserById(userId, token)
         }
         viewModel.loadSelectedStatuses(context)
+    }
+    LaunchedEffect(importResult) {
+        if (importResult?.isNotEmpty() == true) {
+            Toast(context).apply {
+                setText(importResult)
+                show()
+            }
+            viewModel.clearImportResult()
+        }
     }
 
     // Lanzador para abrir selector de archivos para importar JSON
@@ -152,6 +165,8 @@ fun SettingsScreen(
             modifier = Modifier
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 24.dp)
+                .verticalScroll(rememberScrollState()) // Habilita el scroll
+                .padding(horizontal = 16.dp, vertical = 24.dp) // Añade el padding
                 .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
@@ -278,9 +293,38 @@ fun SettingsScreen(
                     title = "Importar tareas",
                     description = "Sube un archivo JSON con tus tareas",
                     onClick = {
-                        importLauncher.launch("application/json")
+                        showImportConfirmationDialog = true
                     }
                 )
+                if (showImportConfirmationDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showImportConfirmationDialog = false },
+                        title = { Text("¿Estás seguro?") },
+                        text = {
+                            Text(
+                                "Estás a punto de importar todas las tareas del archivo seleccionado.\n\n" +
+                                        "Si tu cuenta está vinculada con Google Calendar, las tareas también se añadirán automáticamente a tu calendario.\n\n" +
+                                        "Podrás gestionarlas desde la sección 'Mis tareas'."
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showImportConfirmationDialog = false
+                                    importLauncher.launch("application/json")
+                                }
+                            ) {
+                                Text("Confirmar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showImportConfirmationDialog = false }) {
+                                Text("Cancelar")
+                            }
+                        }
+                    )
+                }
+
 
                 SettingsOptionCard(
                     icon = Icons.Default.Help,
@@ -290,6 +334,18 @@ fun SettingsScreen(
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("focusplanner.welcome@gmail.com")
                             putExtra(Intent.EXTRA_SUBJECT, "Consulta desde la app FocusPlanner")
+                        }
+                        context.startActivity(intent)
+                    }
+                )
+
+                SettingsOptionCard(
+                    icon = Icons.Default.CalendarToday,
+                    title = "Integración con Google Calendar",
+                    description = "Activa la sincronización de tareas con tu calendario de Google.",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = Uri.parse("https://9679-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
                         }
                         context.startActivity(intent)
                     }

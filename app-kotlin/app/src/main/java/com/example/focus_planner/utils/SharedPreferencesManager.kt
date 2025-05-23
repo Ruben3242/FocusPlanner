@@ -205,6 +205,9 @@ object SharedPreferencesManager {
         return uriString?.let { Uri.parse(it) }
     }
 
+    //guardar las imagener vidos y aidios de cada tarea
+
+
 
 
 }

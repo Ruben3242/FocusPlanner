@@ -9,6 +9,7 @@ import lombok.*;
 import org.springframework.hateoas.RepresentationModel;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -49,5 +50,21 @@ public class Task extends RepresentationModel<Task> {
 
     @Column(name = "google_calendar_event_id")
     private String googleCalendarEventId;
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "completed_at", nullable = true)
+    private LocalDateTime completedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        if (this.completed && this.completedAt == null) {
+            this.completedAt = LocalDateTime.now(); // marcamos como completada al momento
+        }
+    }
+
+
 }
 

@@ -19,7 +19,10 @@ data class Task(
     @ColumnInfo(name = "google_calendar_event_id") val googleCalendarEventId: String?,
     @ColumnInfo(name = "user_id") val userId: Long,  // Agrega esta columna
     @Relation(parentColumn = "user_id", entityColumn = "id")
-    val user: User? = null  // Relación con el usuario
+    val user: User? = null,  // Relación con el usuario
+    val imageUri: String? = null,
+    val videoUri: String? = null,
+    val audioUri: String? = null
 )
 
 data class TaskSummaryDTO(
@@ -37,4 +40,9 @@ data class TaskDto(
     var priority: TaskPriority
 )
 
+data class UserStatsResponse(
+    val total: Int,
+    val completed: Int,
+    val mostProductiveHour: Int
+)
 

@@ -69,7 +69,7 @@ dependencies {
 
     implementation ("com.auth0:java-jwt:3.18.2")
     implementation("io.coil-kt:coil-compose:2.4.0")
-
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
     // ViewModel y LiveData
     implementation(libs.androidx.lifecycle.viewmodel.compose)

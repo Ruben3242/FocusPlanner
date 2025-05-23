@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.UserResponse
+import com.example.focus_planner.data.repository.TaskRepository
 import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.utils.SharedPreferencesManager
@@ -19,12 +20,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val taskRepository: TaskRepository
 ) : ViewModel() {
 
 
@@ -40,6 +43,26 @@ class ProfileViewModel @Inject constructor(
 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
+
+    private val _totalTasks = MutableStateFlow(0)
+    private val _completedTasks = MutableStateFlow(0)
+    private val _mostProductiveHour = MutableStateFlow(0)
+    val totalTasks = _totalTasks.asStateFlow()
+    val completedTasks = _completedTasks.asStateFlow()
+    val mostProductiveHour = _mostProductiveHour.asStateFlow()
+
+    fun getUserStats(userId: Long, token: String) {
+        viewModelScope.launch {
+            try {
+                val stats = taskRepository.getUserStats(userId, token)
+                _totalTasks.value = stats.total
+                _completedTasks.value = stats.completed
+                _mostProductiveHour.value = stats.mostProductiveHour
+            } catch (e: Exception) {
+                Log.e("StatsError", e.message ?: "Error stats")
+            }
+        }
+    }
 
     // Obtener perfil del usuario
     fun getUserProfile(token: String) {
@@ -230,7 +253,6 @@ class ProfileViewModel @Inject constructor(
 //            }
 //        }
 //    }
-
 
 
     fun authenticateUser(email: String, currentPassword: String, onResult: (String?, String?) -> Unit) {

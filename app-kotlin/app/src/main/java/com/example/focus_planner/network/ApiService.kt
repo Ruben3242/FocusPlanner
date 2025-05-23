@@ -8,6 +8,7 @@ import com.example.focus_planner.data.model.UserResponse
 import com.example.focus_planner.data.model.task.TaskDto
 import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.data.model.task.TaskSummaryDTO
+import com.example.focus_planner.data.model.task.UserStatsResponse
 import com.example.focus_planner.model.LoginRequest
 import com.example.focus_planner.model.LoginResponse
 import com.example.focus_planner.model.RegisterRequest
@@ -172,5 +173,11 @@ interface ApiService {
     suspend fun deleteMyAccount(
         @Header("Authorization") authHeader: String
     ): Response<Unit>
+
+    @GET("api/tasks/stats/{userId}")
+    suspend fun getUserStats(
+        @Path("userId") userId: Long,
+        @Header("Authorization") token: String
+    ): UserStatsResponse
 
 }

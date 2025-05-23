@@ -1,7 +1,7 @@
 package com.example.focus_planner.viewmodel
 
 import android.content.Context
-import android.content.SharedPreferences
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -292,5 +292,55 @@ class TaskViewModel @Inject constructor(
         }
     }
 
+    fun createTaskWithAttachments(
+        task: Task,
+        context: Context,
+        imageUri: Uri? = null,
+        videoUri: Uri? = null,
+        audioUri: Uri? = null
+    ) {
+        viewModelScope.launch {
+            val token = getToken(context)
+            val userId = getUserId(context)
+
+            Log.d("CreateTask", "Token obtenido: $token UserId: $userId")
+
+            if (token == null || userId == null) {
+                _creationSuccess.value = false
+                return@launch
+            }
+
+            // Añadimos userId a la tarea, como antes
+            val taskWithUser = task.copy(userId = userId)
+
+            // Enviamos al backend SIN añadir los URIs porque no los maneja el backend
+            val response = repository.createTask(taskWithUser, token)
+
+            if (response.isSuccessful) {
+                _creationSuccess.value = true
+
+                // Aquí guardas localmente los URIs si usas Room o SQLite local,
+                // o haces lo que necesites para el frontend (no se envían al backend).
+                // Por ejemplo, un método para guardar URIs asociados a esa tarea localmente:
+                saveAttachmentsLocally(taskWithUser.id, imageUri, videoUri, audioUri)
+
+            } else {
+                _creationSuccess.value = false
+                Log.e("CreateTask", "Error en la respuesta: ${response.code()} ${response.message()}")
+            }
+        }
+    }
+
+    // Función de ejemplo para guardar URIs localmente, debes implementarla según tu DB local
+    private fun saveAttachmentsLocally(
+        taskId: Long,
+        imageUri: Uri?,
+        videoUri: Uri?,
+        audioUri: Uri?
+    ) {
+        // Ejemplo: guardas en la DB local el taskId con esos URIs
+        // Aquí deberías implementar la lógica concreta de Room/SQLite para actualizar la tarea local
+        Log.d("SaveAttachments", "Guardando adjuntos locales para tarea $taskId: image=$imageUri, video=$videoUri, audio=$audioUri")
+    }
 
 }

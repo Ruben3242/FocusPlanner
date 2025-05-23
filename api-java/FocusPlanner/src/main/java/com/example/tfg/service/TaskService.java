@@ -8,6 +8,7 @@ import com.example.tfg.enums.Priority;
 import com.example.tfg.model.Task;
 import com.example.tfg.model.TaskDto;
 import com.example.tfg.model.User;
+import com.example.tfg.model.UserTaskStatsDTO;
 import com.example.tfg.repository.TaskRepository;
 import com.example.tfg.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,10 @@ import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -163,38 +167,6 @@ public class TaskService {
         return taskRepository.findByIdAndUser(id, user);
     }
 
-//    public Task updateTask(Long id, Task taskDetails) {
-//        User user = getAuthenticatedUser(); // Obtener el usuario autenticado
-//        Task task = taskRepository.findByIdAndUser(id, user)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
-//
-//        if (taskDetails.getDueDate() == null) {
-//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha de vencimiento no puede ser nula.");
-//        }
-//
-//        // Actualizar los campos de la tarea
-//        task.setTitle(taskDetails.getTitle());
-//        task.setDescription(taskDetails.getDescription());
-//        task.setCompleted(taskDetails.isCompleted());
-//        task.setDueDate(taskDetails.getDueDate());
-//
-//        // Si la prioridad es proporcionada, actualizarla
-//        if (taskDetails.getPriority() != null) {
-//            task.setPriority(taskDetails.getPriority());
-//        }
-//
-//        return taskRepository.save(task);
-//    }
-
-
-    // Eliminar una tarea solo si pertenece al usuario autenticado
-//    public void deleteTask(Long id) {
-//        User user = getAuthenticatedUser();
-//        Task task = taskRepository.findByIdAndUser(id, user)
-//                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
-//        taskRepository.delete(task);
-//    }
-
     public Task createTask(Task task) throws IOException {
         User user = getAuthenticatedUser();
         task.setUser(user);
@@ -217,13 +189,24 @@ public class TaskService {
         Task existingTask = taskRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarea no encontrada"));
 
+        boolean wasCompleted = existingTask.isCompleted(); // estado ANTES del cambio
+        boolean nowCompleted = updatedTask.isCompleted();  // nuevo valor
+
         existingTask.setTitle(updatedTask.getTitle());
         existingTask.setDescription(updatedTask.getDescription());
-        existingTask.setCompleted(updatedTask.isCompleted());
         existingTask.setDueDate(updatedTask.getDueDate());
         existingTask.setStatus(calculateStatus(existingTask));
         existingTask.setPriority(updatedTask.getPriority());
-        existingTask.setGoogleCalendarEventId(updatedTask.getGoogleCalendarEventId());
+        existingTask.setGoogleCalendarEventId(existingTask.getGoogleCalendarEventId()); // no tocar
+
+        existingTask.setCompleted(nowCompleted); // ahora sí se actualiza
+
+        if (!wasCompleted && nowCompleted) {
+            existingTask.setCompletedAt(LocalDateTime.now());
+        } else if (wasCompleted && !nowCompleted) {
+            existingTask.setCompletedAt(null);
+        }
+
 
         Task savedTask = taskRepository.save(existingTask);
 
@@ -321,7 +304,14 @@ public class TaskService {
                 task.setPriority(dto.getPriority());
                 task.setUser(user);
 
-                taskRepository.save(task);
+                Task savedTask = taskRepository.save(task);
+                try {
+                    String eventId = googleCalendarService.createCalendarEvent(savedTask, user);
+                    savedTask.setGoogleCalendarEventId(eventId);
+                    taskRepository.save(savedTask);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 addedCount++;
             }
         }
@@ -355,5 +345,33 @@ public class TaskService {
         }
     }
 
+    public UserTaskStatsDTO getUserTaskStats(Long userId) {
+        List<Task> tasks = taskRepository.findByUserId(userId);
+
+        int total = tasks.size();
+        int completed = (int) tasks.stream().filter(Task::isCompleted).count();
+
+        // Obtener la hora más productiva
+        Map<Integer, Long> hourCount = tasks.stream()
+                .filter(Task::isCompleted)
+                .map(task -> {
+                    if (task.getCompletedAt() != null) {
+                        return task.getCompletedAt().getHour();
+                    } else if (task.getCreatedAt() != null) {
+                        return task.getCreatedAt().getHour();
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.groupingBy(hour -> hour, Collectors.counting()));
+
+        Integer mostProductiveHour = hourCount.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        return new UserTaskStatsDTO(total, completed, mostProductiveHour);
+    }
 
 }

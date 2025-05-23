@@ -154,7 +154,7 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearImportResult() {
-        _importResult.value = null
+        _importResult.value = ""
     }
 
     private val _user = MutableStateFlow<User?>(null)

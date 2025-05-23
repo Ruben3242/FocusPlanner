@@ -2,18 +2,19 @@ package com.example.tfg.controller;
 
 import com.example.tfg.enums.TaskStatus;
 import com.example.tfg.enums.Priority;
-import com.example.tfg.model.Task;
-import com.example.tfg.model.TaskDto;
-import com.example.tfg.model.UpdateSettingsRequest;
-import com.example.tfg.model.User;
+import com.example.tfg.model.*;
 import com.example.tfg.repository.UserRepository;
+import com.example.tfg.security.Jwt.JwtService;
 import com.example.tfg.service.TaskService;
+import com.example.tfg.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +37,11 @@ public class TaskController {
     private final UserRepository userRepository;
     private final TaskService taskService;
     private final PagedResourcesAssembler<Task> pagedResourcesAssembler;
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private UserService userService;
 
 
     // Crear una tarea
@@ -57,7 +63,22 @@ public class TaskController {
         return ResponseEntity.ok(filteredTasks);
     }
 
+    @GetMapping("/stats/{userId}")
+    public ResponseEntity<UserTaskStatsDTO> getUserStats(
+            @PathVariable Long userId,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        String token = authHeader.replace("Bearer ", "").trim();
+        String emailFromToken = jwtService.getEmailFromToken(token);
 
+        User user = userService.findById(userId);
+        if (!user.getEmail().equals(emailFromToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        UserTaskStatsDTO stats = taskService.getUserTaskStats(userId);
+        return ResponseEntity.ok(stats);
+    }
 
 
     @GetMapping

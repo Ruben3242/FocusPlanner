@@ -45,7 +45,6 @@ fun AppNavigation(
     val tokenExpired = SharedPreferencesManager.isTokenExpired(context)
 
     val startDestination = if (token != null && !tokenExpired) "home" else "login"
-    // Escuchamos la ruta actual para pasársela a MainScaffold
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
     val currentRoute = currentBackStackEntry.value?.destination?.route ?: startDestination

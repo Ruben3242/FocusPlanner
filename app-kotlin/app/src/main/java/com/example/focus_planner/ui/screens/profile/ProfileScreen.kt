@@ -12,16 +12,24 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
@@ -39,25 +47,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.focus_planner.R
 import com.example.focus_planner.data.model.UpdateUserRequest
 import com.example.focus_planner.data.model.User
+import com.example.focus_planner.ui.screens.home.TaskBarChart
+import com.example.focus_planner.ui.screens.home.TaskLineChart
+import com.example.focus_planner.ui.screens.home.TaskPieChart
 import com.example.focus_planner.ui.screens.tasks.TaskListTopBar
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.loadProfileImageUri
 import com.example.focus_planner.utils.SharedPreferencesManager.saveProfileImageUri
 import com.example.focus_planner.utils.TokenManager
 import com.example.focus_planner.viewmodel.ProfileViewModel
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import kotlinx.coroutines.delay
 
 @Composable
 fun ProfileTopBar(
@@ -102,11 +121,35 @@ fun ProfileScreen(
     val context = LocalContext.current
 
     var showPasswordPopup by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+
 
     var newUsername by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var newFirstname by remember { mutableStateOf("") }
     var newLastname by remember { mutableStateOf("") }
+    val showChart = remember { mutableStateOf(false) }
+
+    val totalTasks by viewModel.totalTasks.collectAsState()
+    val completedTasks by viewModel.completedTasks.collectAsState()
+    val mostProductiveHour by viewModel.mostProductiveHour.collectAsState()
+
+    LaunchedEffect(user) {
+        user?.let {
+            newUsername = it.username
+            newEmail = it.email
+            newFirstname = it.firstname.toString()
+            newLastname = it.lastname.toString()
+            viewModel.getUserStats(it.id, token)
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        delay(1000) // espera 300 ms antes de mostrar el gráfico
+        showChart.value = true
+    }
+
 
     LaunchedEffect(Unit) {
         TokenManager.checkTokenAndRefresh(context, navController)
@@ -141,6 +184,7 @@ fun ProfileScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(scrollState)
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -191,27 +235,155 @@ fun ProfileScreen(
                 ) {
                     Text("Guardar cambios")
                 }
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                UserStatsSection(
+                    totalTasks = totalTasks,
+                    completedTasks = completedTasks,
+                    mostProductiveHour = mostProductiveHour
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                if (showChart.value) {
+                    Text(
+                        text = "Visualización gráfica de tu progreso y productividad",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+                    )
+
+                    TaskPieChart()
+                    TaskLineChart()
+                }
 
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-                Text("¿Quieres activar la integración con Google Calendar?")
-                Button(
-                    onClick = {
-                        val intent =
-                            android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                                data =
-                                    android.net.Uri.parse("https://4734-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
-                            }
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E88E5))
-                ) {
-                    Text("Activar Google Calendar", color = Color.White)
-                }
             }
         }
     }
+}
+
+@Composable
+fun UserStatsSection(
+    totalTasks: Int,
+    completedTasks: Int,
+    mostProductiveHour: Int?
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Estadísticas de tu rendimiento en Focus Planner",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(
+            text = "Aquí puedes ver un resumen de tus tareas y hábitos de productividad.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        StatCard(
+            title = "Tareas activas en este momento",
+            value = "$totalTasks",
+            icon = Icons.Default.List
+        )
+
+        StatCard(
+            title = "Tareas completadas",
+            value = "$completedTasks / $totalTasks",
+            icon = Icons.Default.Check
+        )
+
+        mostProductiveHour?.let {
+            StatCard(
+                title = "Tu hora más productiva",
+                value = "$it:00h",
+                icon = Icons.Default.AccessTime,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+
+@Composable
+fun StatCard(
+    title: String,
+    value: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        modifier = modifier
+            .height(100.dp)
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE3F2FD))
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = title, tint = Color(0xFF1E88E5))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(title, fontWeight = FontWeight.Bold)
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
+            )
+        }
+    }
+}
+
+@Composable
+fun TaskBarChart() {
+    AndroidView(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(250.dp)
+            .padding(top = 24.dp),
+        factory = { context ->
+            BarChart(context).apply {
+                description.isEnabled = false
+                axisRight.isEnabled = false
+
+                val entries = listOf(
+                    BarEntry(0f, 4f), // Lunes
+                    BarEntry(1f, 2f), // Martes
+                    BarEntry(2f, 6f), // Miércoles
+                    BarEntry(3f, 3f), // Jueves
+                    BarEntry(4f, 5f), // Viernes
+                    BarEntry(5f, 1f), // Sábado
+                    BarEntry(6f, 0f)  // Domingo
+                )
+
+                val dataSet = BarDataSet(entries, "Tareas por día")
+                dataSet.color = android.graphics.Color.parseColor("#1E88E5")
+
+                val barData = BarData(dataSet)
+                barData.barWidth = 0.9f
+                barData.setValueTextSize(12f)
+
+                this.data = barData
+                this.setFitBars(true)
+                this.invalidate()
+            }
+        }
+    )
 }
 
 
