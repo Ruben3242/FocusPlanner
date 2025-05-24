@@ -6,10 +6,11 @@ import android.util.Log
 import com.auth0.jwt.JWT
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.example.focus_planner.data.model.task.TaskStatus
+
 import kotlin.math.E
 
 object SharedPreferencesManager {
-    private const val PREFS_NAME = "focus_planner_prefs"
+    const val PREFS_NAME = "focus_planner_prefs"
     private const val TOKEN_KEY = "auth_token"
     private const val REFRESH_TOKEN_KEY = "refresh_token"
     private const val EXPIRATION_KEY = "token_expiration"
@@ -17,6 +18,12 @@ object SharedPreferencesManager {
     private const val KEY_USER_ID = "user_id"
     private const val KEY_USER_EMAIL = "user_email"
     private const val KEY_SELECTED_STATUSES = "selected_statuses"
+    const val KEY_IS_RUNNING = "is_running"
+    const val KEY_TIME_LEFT = "time_left"
+    const val KEY_WORK_TIME = "work_time"
+    const val KEY_BREAK_TIME = "break_time"
+    const val KEY_IS_WORK_TIME = "is_work_time"
+    const val KEY_END_TIME = "end_time"
 
 
     // Guardar token y fecha de expiración
@@ -204,10 +211,86 @@ object SharedPreferencesManager {
         val uriString = prefs.getString("profile_image_uri", null)
         return uriString?.let { Uri.parse(it) }
     }
+    fun savePomodoroState(
+        context: Context,
+        isRunning: Boolean,
+        timeLeft: Int,
+        workTime: Int,
+        breakTime: Int,
+        isWorkTime: Boolean
+    ) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val editor = prefs.edit()
+
+        editor.putBoolean(KEY_IS_RUNNING, isRunning)
+        editor.putInt(KEY_TIME_LEFT, timeLeft)
+        editor.putInt(KEY_WORK_TIME, workTime)
+        editor.putInt(KEY_BREAK_TIME, breakTime)
+        editor.putBoolean(KEY_IS_WORK_TIME, isWorkTime)
+
+        if (isRunning) {
+            val endTime = System.currentTimeMillis() + (timeLeft * 1000L)
+            editor.putLong(KEY_END_TIME, endTime)
+        } else {
+            editor.remove(KEY_END_TIME)
+        }
+
+        editor.apply()
+    }
+
+    fun loadPomodoroState(context: Context): PomodoroState {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+        val isRunning = prefs.getBoolean(KEY_IS_RUNNING, false)
+        val savedTimeLeft = prefs.getInt(KEY_TIME_LEFT, 25 * 60)
+        val workTime = prefs.getInt(KEY_WORK_TIME, 25)
+        val breakTime = prefs.getInt(KEY_BREAK_TIME, 5)
+        val isWorkTime = prefs.getBoolean(KEY_IS_WORK_TIME, true)
+
+        val currentTime = System.currentTimeMillis()
+        val endTime = prefs.getLong(KEY_END_TIME, -1L)
+
+        val calculatedTimeLeft = if (isRunning && endTime > 0) {
+            val diff = ((endTime - currentTime) / 1000).toInt()
+            if (diff > 0) diff else 0
+        } else savedTimeLeft
+
+        return PomodoroState(
+            isRunning = isRunning && calculatedTimeLeft > 0,
+            timeLeft = calculatedTimeLeft,
+            workTime = workTime,
+            breakTime = breakTime,
+            isWorkTime = isWorkTime
+        )
+    }
+
+    data class PomodoroState(
+        val isRunning: Boolean,
+        val timeLeft: Int,
+        val workTime: Int,
+        val breakTime: Int,
+        val isWorkTime: Boolean
+    )
 
     //guardar las imagener vidos y aidios de cada tarea
 
-
-
-
 }
+//object TimerController {
+//    private const val PREF_NAME = "pomodoro_prefs"
+//    private const val KEY_IS_RUNNING = "is_timer_running"
+//
+//    fun pause(context: Context) {
+//        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+//        prefs.edit().putBoolean(KEY_IS_RUNNING, false).apply()
+//    }
+//
+//    fun resume(context: Context) {
+//        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+//        prefs.edit().putBoolean(KEY_IS_RUNNING, true).apply()
+//    }
+//
+//    fun isRunning(context: Context): Boolean {
+//        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+//        return prefs.getBoolean(KEY_IS_RUNNING, false)
+//    }
+//}

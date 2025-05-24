@@ -1,12 +1,19 @@
 package com.example.focus_planner.ui.screens.organizacion
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -14,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,8 +32,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.focus_planner.ui.notificaciones.PomodoroActionReceiver
+import com.example.focus_planner.ui.notificaciones.showPomodoroNotification
+import com.example.focus_planner.ui.notificaciones.updatePomodoroProgressNotification
+import com.example.focus_planner.utils.SharedPreferencesManager.loadPomodoroState
+import com.example.focus_planner.utils.SharedPreferencesManager.savePomodoroState
+import com.example.focus_planner.viewmodel.PomodoroViewModel
 
 @Composable
 fun PomodoroTopBar(
@@ -60,57 +79,52 @@ fun PomodoroTopBar(
 
 @Composable
 fun PomodoroScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: PomodoroViewModel = hiltViewModel()
 ) {
-    var isTimerRunning by remember { mutableStateOf(false) }
-    var isOnBreak by remember { mutableStateOf(false) }
-    var timeLeft by remember { mutableStateOf(25 * 60) } // 25 minutos de trabajo
-    var workTime by remember { mutableStateOf(25) } // Tiempo de trabajo configurado
-    var breakTime by remember { mutableStateOf(5) } // Tiempo de descanso configurado
+    val context = LocalContext.current
 
-    val startTimer = { if (!isTimerRunning) isTimerRunning = true }
-    val pauseTimer = { if (isTimerRunning) isTimerRunning = false }
-    val resetTimer = {
-        timeLeft = workTime * 60
-        isTimerRunning = false
-        isOnBreak = false
-    }
+    // Observando estado del ViewModel
+    val isTimerRunning by viewModel.isTimerRunning.collectAsState()
+    val timeLeft by viewModel.timeLeft.collectAsState()
+    val workTime by viewModel.workTime.collectAsState()
+    val breakTime by viewModel.breakTime.collectAsState()
+    val isWorkTime by viewModel.isWorkTime.collectAsState()
 
-    var isWorkTime by remember { mutableStateOf(true) }
+    var workTimeInput by remember { mutableStateOf(workTime.toFloat()) }
+    var breakTimeInput by remember { mutableStateOf(breakTime.toFloat()) }
 
-//    var workTime by remember { mutableStateOf(25) } // minutos
-//    var breakTime by remember { mutableStateOf(5) } // minutos
-//    var timeLeft by remember { mutableStateOf(workTime * 60) } // en segundos
+    var showWorkDialog by remember { mutableStateOf(false) }
+    var showBreakDialog by remember { mutableStateOf(false) }
 
-    // Sincroniza timeLeft con el nuevo valor de workTime si el temporizador no está corriendo
-    LaunchedEffect(workTime, isTimerRunning, isWorkTime) {
-        if (!isTimerRunning && isWorkTime) {
-            timeLeft = workTime * 60
+    // Registrar BroadcastReceiver
+    DisposableEffect(Unit) {
+        val internalReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                when (intent?.getStringExtra("ACTION")) {
+                    "ACTION_PAUSE_TIMER" -> viewModel.toggleTimer()
+                    "ACTION_RESUME_TIMER" -> viewModel.toggleTimer()
+                }
+            }
+        }
+
+        val filter = IntentFilter("POMODORO_TIMER_ACTION")
+        ContextCompat.registerReceiver(
+            context,
+            internalReceiver,
+            filter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
+
+        onDispose {
+            context.unregisterReceiver(internalReceiver)
         }
     }
 
-    // Sincroniza también para breakTime si lo usas (opcional)
-    LaunchedEffect(breakTime, isTimerRunning, isWorkTime) {
-        if (!isTimerRunning && !isWorkTime) {
-            timeLeft = breakTime * 60
-        }
-    }
-
-    // Lógica del temporizador (reducida aquí)
-    LaunchedEffect(isTimerRunning, timeLeft) {
-        if (isTimerRunning && timeLeft > 0) {
-            delay(1000L)
-            timeLeft -= 1
-        } else if (isTimerRunning && timeLeft == 0) {
-            isTimerRunning = false
-            isWorkTime = !isWorkTime
-            timeLeft = if (isWorkTime) workTime * 60 else breakTime * 60
-        }
-    }
 
     Scaffold(
         topBar = {
-            PomodoroTopBar(navController = navController, isOnBreak = isOnBreak)
+            PomodoroTopBar(navController = navController, isOnBreak = !isWorkTime)
         }
     ) { paddingValues ->
         Column(
@@ -121,14 +135,7 @@ fun PomodoroScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-//            Text(
-//                text = if (isOnBreak) "RECESO" else "POMODORO",
-//                style = MaterialTheme.typography.headlineMedium,
-//                color = MaterialTheme.colorScheme.primary,
-//                modifier = Modifier.padding(bottom = 20.dp)
-//            )
 
-            // Texto con tiempo
             Text(
                 text = "${timeLeft / 60}:${String.format("%02d", timeLeft % 60)}",
                 style = MaterialTheme.typography.displaySmall.copy(
@@ -141,76 +148,227 @@ fun PomodoroScreen(
 
             AnimatedProgressCircle(
                 timeLeft = timeLeft,
-                totalTime = if (isOnBreak) breakTime * 60 else workTime * 60,
+                totalTime = if (isWorkTime) workTime * 60 else breakTime * 60,
                 isRunning = isTimerRunning,
-                onToggle = { isTimerRunning = !isTimerRunning }
+                onToggle = { viewModel.toggleTimer() }
             )
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-//            Row(
-//                horizontalArrangement = Arrangement.Center,
-//                modifier = Modifier.fillMaxWidth()
-//            ) {
-//                Button(
-//                    onClick = { if (isTimerRunning) pauseTimer() else startTimer() },
-//                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-//                    shape = MaterialTheme.shapes.medium,
-//                    modifier = Modifier.weight(1f)
-//                ) {
-//                    Text(text = if (isTimerRunning) "Pausar" else "Iniciar", color = MaterialTheme.colorScheme.onPrimary)
-//                }
-//
-//                Spacer(modifier = Modifier.width(16.dp))
-//
-//                Button(
-//                    onClick = resetTimer,
-//                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-//                    shape = MaterialTheme.shapes.medium,
-//                    modifier = Modifier.weight(1f)
-//                ) {
-//                    Text("Reiniciar")
-//                }
-//            }
 
             Spacer(modifier = Modifier.height(30.dp))
             Divider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
             Spacer(modifier = Modifier.height(30.dp))
 
             Text(
-                text = "Tiempo de trabajo: $workTime minutos",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                text = "Tiempo de trabajo: ${workTimeInput.toInt()} minutos",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = !isTimerRunning) {
+                        showWorkDialog = true
+                    }
             )
+
             Slider(
-                value = workTime.toFloat(),
-                onValueChange = { if (!isTimerRunning) workTime = it.toInt() }, // Opcional para reforzar
+                value = workTimeInput,
+                onValueChange = { workTimeInput = it },
                 valueRange = 10f..60f,
                 steps = 50,
                 modifier = Modifier.fillMaxWidth(),
-                enabled = !isTimerRunning // Deshabilita el slider si el timer está activo
+                enabled = !isTimerRunning
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "Tiempo de descanso: $breakTime minutos",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onBackground
+                text = "Tiempo de descanso: ${breakTimeInput.toInt()} minutos",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(enabled = !isTimerRunning) {
+                        showBreakDialog = true
+                    }
             )
+
             Slider(
-                value = breakTime.toFloat(),
-                onValueChange = { if (!isTimerRunning) breakTime = it.toInt() },
+                value = breakTimeInput,
+                onValueChange = { breakTimeInput = it },
                 valueRange = 1f..30f,
                 steps = 29,
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !isTimerRunning
             )
 
+
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    viewModel.setWorkAndBreakTimes(
+                        workTimeInput.toInt(),
+                        breakTimeInput.toInt()
+                    )
+                },
+                enabled = !isTimerRunning,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Establecer tiempos")
+            }
+            if (showWorkDialog) {
+                TimeInputDialog(
+                    title = "Establecer tiempo de trabajo",
+                    initialValue = workTimeInput.toInt(),
+                    valueRange = 25..60,
+                    onDismiss = { showWorkDialog = false },
+                    onConfirm = {
+                        workTimeInput = it.toFloat()
+                    }
+                )
+            }
+
+            if (showBreakDialog) {
+                TimeInputDialog(
+                    title = "Establecer tiempo de descanso",
+                    initialValue = breakTimeInput.toInt(),
+                    valueRange = 1..30,
+                    onDismiss = { showBreakDialog = false },
+                    onConfirm = {
+                        breakTimeInput = it.toFloat()
+                    }
+                )
+            }
+
         }
     }
 }
+@Composable
+fun TimeInputDialog(
+    title: String,
+    initialValue: Int,
+    valueRange: IntRange,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var input by remember { mutableStateOf(initialValue.toString()) }
 
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text(title) },
+        text = {
+            OutlinedTextField(
+                value = input,
+                onValueChange = {
+                    input = it.filter { char -> char.isDigit() }
+                },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                label = { Text("Minutos") }
+            )
+        },
+        confirmButton = {
+            IconButton(onClick = {
+                input.toIntOrNull()?.let {
+                    if (it in valueRange) {
+                        onConfirm(it)
+                    }
+                }
+                onDismiss()
+            }) {
+                Icon(Icons.Default.Check, contentDescription = "Confirmar")
+            }
+        },
+        dismissButton = {
+            IconButton(onClick = { onDismiss() }) {
+                Icon(Icons.Default.Close, contentDescription = "Cancelar")
+            }
+        }
+    )
+}
+
+@Composable
+fun EditableTimeSetting(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    enabled: Boolean,
+    onValueChange: (Float) -> Unit
+) {
+    var isEditing by remember { mutableStateOf(false) }
+    var textValue by remember { mutableStateOf(value.toInt().toString()) }
+
+    val focusManager = LocalFocusManager.current
+
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clickable(enabled = enabled) { isEditing = true }
+        ) {
+            if (isEditing) {
+                OutlinedTextField(
+                    value = textValue,
+                    onValueChange = {
+                        textValue = it.filter { char -> char.isDigit() }
+                        textValue.toIntOrNull()?.let { newValue ->
+                            if (newValue in range.start.toInt()..range.endInclusive.toInt()) {
+                                onValueChange(newValue.toFloat())
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .width(100.dp)
+                        .onFocusChanged { focusState ->
+                            if (!focusState.isFocused) {
+                                isEditing = false
+                                textValue.toIntOrNull()?.let { newValue ->
+                                    if (newValue in range.start.toInt()..range.endInclusive.toInt()) {
+                                        onValueChange(newValue.toFloat())
+                                    }
+                                }
+                            }
+                        },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Done
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onDone = {
+                            focusManager.clearFocus()
+                        }
+                    ),
+                    label = { Text(label) },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            isEditing = false
+                            focusManager.clearFocus()
+                        }) {
+                            Icon(Icons.Default.Check, contentDescription = "Confirmar")
+                        }
+                    }
+                )
+            } else {
+                Text(
+                    text = "$label: ${value.toInt()} minutos",
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        Slider(
+            value = value,
+            onValueChange = {
+                onValueChange(it)
+                textValue = it.toInt().toString()
+            },
+            valueRange = range,
+            steps = (range.endInclusive - range.start).toInt() - 1,
+            modifier = Modifier.fillMaxWidth(),
+            enabled = enabled
+        )
+    }
+}
 
 
 @Composable
