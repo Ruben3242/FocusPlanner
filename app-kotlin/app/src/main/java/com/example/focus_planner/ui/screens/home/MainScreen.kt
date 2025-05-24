@@ -94,23 +94,45 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
+                // Fila 1: Crear tareas + Mis Tareas
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     NavCard(
-                        icon = Icons.Default.List,
-                        title = "Mis Tareas",
-                        onClick = { onNavigate("tasks") },
+                    icon = Icons.Default.List,
+                    title = "Mis Tareas",
+                    onClick = { onNavigate("tasks") },
+                    modifier = Modifier.weight(1f)
+                )
+                    NavCard(
+                        icon = Icons.Default.AddToPhotos,
+                        title = "Crear tareas",
+                        onClick = { onNavigate("addTask") },
                         modifier = Modifier.weight(1f)
                     )
+                }
+
+                // Fila 2: Calendario + Pomodoro
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
                     NavCard(
                         icon = Icons.Default.CalendarToday,
                         title = "Calendario",
                         onClick = { onNavigate("calendar") },
                         modifier = Modifier.weight(1f)
                     )
+                    NavCard(
+                        icon = Icons.Default.Timer,
+                        title = "Pomodoro",
+                        onClick = { onNavigate("pomodoro") },
+                        modifier = Modifier.weight(1f)
+                    )
                 }
+
+                // Fila 3: Perfil + Ajustes
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
@@ -122,30 +144,14 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
                         modifier = Modifier.weight(1f)
                     )
                     NavCard(
-                        icon = Icons.Default.Timer,
-                        title = "Pomodoro",
-                        onClick = { onNavigate("pomodoro") },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    NavCard(
                         icon = Icons.Default.Settings,
                         title = "Ajustes",
                         onClick = { onNavigate("settings") },
                         modifier = Modifier.weight(1f)
                     )
-                    NavCard(
-                        icon = Icons.Default.AddToPhotos,
-                        title = "Crear tareas",
-                        onClick = { onNavigate("addTask") },
-                        modifier = Modifier.weight(1f)
-                    )
                 }
             }
+
 //            TaskPieChart()
             TaskBarChart()
 //            TaskLineChart()
