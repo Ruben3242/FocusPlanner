@@ -50,4 +50,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> , JpaSpecifica
 
     void deleteAllByUserId(Long userId);
 
+    List<Task> findAllByUserId(Long userId);
+
+    @Query("SELECT t FROM Task t WHERE t.user = :user AND (t.status = 'COMPLETED' OR t.status = 'EXPIRED')")
+    List<Task> findAllCompletedOrExpiredTasks(@Param("user") User user);
+
+
+    List<Task> findByUserAndStatusIn(User user, List<TaskStatus> statuses);
 }

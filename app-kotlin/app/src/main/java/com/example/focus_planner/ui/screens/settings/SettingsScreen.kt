@@ -132,7 +132,7 @@ fun SettingsScreen(
         ) {
             CircularProgressIndicator()
         }
-        return // Salir del Composable para no renderizar el resto aún
+        return
     }
 
     if (showDeleteDialog) {
@@ -240,7 +240,6 @@ fun SettingsScreen(
                                     TextButton(onClick = {
                                         if (viewModel.selectedStatuses.isNotEmpty() && token != null) {
                                             viewModel.deleteTasksByStatuses(token, viewModel.selectedStatuses.toList())
-//                                            viewModel.clearSelectedStatuses(context)
                                         }
                                         showStatusDialog = false
                                     }) {

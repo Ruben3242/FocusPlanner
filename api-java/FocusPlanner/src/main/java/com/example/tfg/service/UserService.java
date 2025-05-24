@@ -1,5 +1,7 @@
 package com.example.tfg.service;
 
+import com.example.tfg.GogleCalendar.Auth.Permisos.GoogleCalendarService;
+import com.example.tfg.model.Task;
 import com.example.tfg.security.model.AuthResponse;
 import com.example.tfg.security.model.LoginRequest;
 import com.example.tfg.security.Jwt.JwtService;
@@ -11,6 +13,7 @@ import com.example.tfg.repository.TaskRepository;
 import com.example.tfg.security.repository.TokenVerificationRepository;
 import com.example.tfg.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,6 +37,8 @@ public class UserService {
     private final EmailService emailService;
     private final TokenVerificationRepository tokenVerificationRepository;
     private final TaskRepository taskRepository;
+    @Autowired
+    private final GoogleCalendarService googleCalendarService;
 
 
     public User registerUser(String email, String password, String username, String firstname, String lastname, String country) {
@@ -137,19 +142,26 @@ public class UserService {
 
     @Transactional
     public void deleteUserById(Long userId) {
-        // Validación opcional
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
 
-        // Eliminar tareas
-        taskRepository.deleteAllByUserId(userId);
+        List<Task> tasks = taskRepository.findAllByUserId(userId);
 
-        // Eliminar tokens de verificación
+        for (Task task : tasks) {
+            try {
+                if (user.getGoogleAccessToken() != null && task.getGoogleCalendarEventId() != null) {
+                    googleCalendarService.deleteCalendarEvent(task.getGoogleCalendarEventId(), user);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        taskRepository.deleteAll(tasks);
         tokenVerificationRepository.deleteAllByUserId(userId);
-
-        // Eliminar usuario
         userRepository.delete(user);
     }
+
 
     public User findById(Long id) {
         return userRepository.findById(id)

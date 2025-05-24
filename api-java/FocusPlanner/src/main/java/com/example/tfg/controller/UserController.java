@@ -2,6 +2,7 @@ package com.example.tfg.controller;
 
 
 import com.example.tfg.model.Task;
+import com.example.tfg.model.UpdateSettingsRequest;
 import com.example.tfg.model.User;
 import com.example.tfg.repository.UserRepository;
 import com.example.tfg.security.Jwt.JwtService;
@@ -173,6 +174,19 @@ public class UserController {
         Long userId = Long.valueOf(jwtService.extractId(token));
         userService.deleteUserById(userId);
         return ResponseEntity.ok("Cuenta eliminada correctamente.");
+    }
+    @PutMapping("/{id}/settings")
+    public ResponseEntity<User> updateSettings(
+            @PathVariable Long id,
+            @RequestBody UpdateSettingsRequest request
+    ) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setRemoveCompletedExpiredTasks(request.getRemoveCompletedExpiredTasks());
+        userRepository.save(user);
+
+        return ResponseEntity.ok(user);
     }
 }
 

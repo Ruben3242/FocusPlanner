@@ -29,11 +29,13 @@ import com.example.focus_planner.ui.screens.tasks.EditTaskScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
 import com.example.focus_planner.ui.screens.tasks.TaskListScreen
 import com.example.focus_planner.utils.SharedPreferencesManager
+import com.example.focus_planner.utils.SharedPreferencesManager.getSelectedStatuses
 import com.example.focus_planner.viewmodel.CalendarViewModel
 import com.example.focus_planner.viewmodel.ProfileViewModel
 import com.example.focus_planner.viewmodel.SettingsViewModel
 import com.example.focus_planner.viewmodel.TaskViewModel
 import com.example.focus_planner.viewmodel.UserViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun AppNavigation(
@@ -60,7 +62,8 @@ fun AppNavigation(
                             popUpTo("home") { inclusive = false }
                         }
                     },
-                    navController = navController
+                    navController = navController,
+                    token = token ?: "",
                 )
 
             }
@@ -70,11 +73,16 @@ fun AppNavigation(
 
                 val token = SharedPreferencesManager.getToken(context) ?: ""
 
-                // Importante: aquí seteas el token e inicializas los filtros
                 LaunchedEffect(Unit) {
                     taskViewModel.setToken(token)
-                    taskViewModel.initializeFiltering()
+                    val statuses = getSelectedStatuses(context).map { it.value }
+                    if (statuses.isNotEmpty()) {
+                        taskViewModel.deleteTasksByStatuses(context, statuses)
+                    } else {
+                        taskViewModel.initializeFiltering()
+                    }
                 }
+
 
                 val tasks by taskViewModel.taskList.collectAsState()
                 val loading by taskViewModel.loading.collectAsState()

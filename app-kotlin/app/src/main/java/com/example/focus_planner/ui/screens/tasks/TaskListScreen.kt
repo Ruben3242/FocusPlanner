@@ -90,7 +90,6 @@ fun TaskListScreen(
     var statusFilter by remember { mutableStateOf<String?>(null) }
     var priorityFilter by remember { mutableStateOf<String?>(null) }
     var showCompleted by remember { mutableStateOf(false) }
-
     Scaffold(
         topBar = {
             TaskListTopBar(navController)
@@ -201,40 +200,48 @@ fun TaskListScreen(
 
             // Lista de tareas
             LazyColumn {
-                items(tasks) { task ->
-                    TaskCard(
-                        task = task,
-                        onDeleteById = { id ->
-                            viewModel.deleteTask(context, id)
-                        },
-                        onNavigateToDetails = { id ->
-                            navController.navigate("taskDetail/$id")
-                        },
-                        modifier = Modifier.padding(bottom = 8.dp),
-                        navController = navController
-                    )
-                }
-
-                // Botón para cargar más
-                item {
-                    if (!loading) {
-                        Button(
-                            onClick = { viewModel.loadNextPage() },
+                if (loading && tasks.isEmpty()) {
+                    item {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp)
+                                .padding(32.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Text("Cargar más")
+                            CircularProgressIndicator()
                         }
-                    } else {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .padding(16.dp)
+                    }
+                } else {
+                    items(tasks) { task ->
+                        TaskCard(
+                            task = task,
+                            onDeleteById = { id -> viewModel.deleteTask(context, id) },
+                            onNavigateToDetails = { id -> navController.navigate("taskDetail/$id") },
+                            modifier = Modifier.padding(bottom = 8.dp),
+                            navController = navController
                         )
+                    }
+                    item {
+                        if (!loading) {
+                            Button(
+                                onClick = { viewModel.loadNextPage() },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                            ) {
+                                Text("Cargar más")
+                            }
+                        } else {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(16.dp)
+                            )
+                        }
                     }
                 }
             }
+
         }
     }
 

@@ -254,7 +254,12 @@ fun ProfileScreen(
                         modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
                     )
 
-                    TaskPieChart()
+                    TaskPieChart(
+                        totalTasks = totalTasks,
+                        completedTasks = completedTasks
+                    )
+
+                    TaskBarChart()
                     TaskLineChart()
                 }
 

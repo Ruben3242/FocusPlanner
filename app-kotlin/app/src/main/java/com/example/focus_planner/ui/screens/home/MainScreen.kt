@@ -1,5 +1,7 @@
 package com.example.focus_planner.ui.screens.home
 
+import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +17,10 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -26,9 +32,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
 import com.example.focus_planner.utils.TokenManager
+import com.example.focus_planner.viewmodel.ProfileViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
@@ -48,6 +57,7 @@ import com.github.mikephil.charting.data.RadarDataSet
 import com.github.mikephil.charting.data.RadarEntry
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.PercentFormatter
+import kotlinx.coroutines.delay
 
 // Paleta colores
 val BackgroundColor = Color.White // Gris oscuro más claro que antes
@@ -57,13 +67,35 @@ val TextSecondary = Color(0xFFB0B0B0)
 val AccentColor = Color(0xFF1565C0) // Azul suave para acentos
 
 @Composable
-fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
+fun MainScreen(
+    onNavigate: (String) -> Unit,
+    navController: NavController,
+    token: String
+) {
     val context = LocalContext.current
+    val viewModel: ProfileViewModel = hiltViewModel()
+    val user by viewModel.userProfile.collectAsState(initial = null)
+
+    val totalTasks by viewModel.totalTasks.collectAsState()
+    val completedTasks by viewModel.completedTasks.collectAsState()
+    val mostProductiveHour by viewModel.mostProductiveHour.collectAsState()
+    val showChart = remember { mutableStateOf(false) }
+    val sharedPrefs =
+        LocalContext.current.getSharedPreferences("focus_planner_prefs", Context.MODE_PRIVATE)
 
     LaunchedEffect(Unit) {
         TokenManager.checkTokenAndRefresh(context, navController)
+        viewModel.getUserProfile(token)
     }
 
+    LaunchedEffect(user) {
+        Log.d("MainScreen", "Fetching user stats for user: ${user?.id} with token: $user")
+        user?.let { viewModel.getUserStats(it.id, token) }
+        showChart.value = false
+        delay(300)
+        Log.d("MainScreen", "Total tasks: $totalTasks, Completed tasks: $completedTasks, Most productive hour: $mostProductiveHour")
+        showChart.value = true
+    }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = BackgroundColor
@@ -71,7 +103,7 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(15.dp)
         ) {
             // Header con línea decorativa
             Text(
@@ -152,8 +184,14 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
                 }
             }
 
-//            TaskPieChart()
-            TaskBarChart()
+            if (showChart.value) {
+                TaskPieChart(
+                    totalTasks = totalTasks,
+                    completedTasks = completedTasks
+                )
+            }
+
+//            TaskBarChart()
 //            TaskLineChart()
             Spacer(modifier = Modifier.weight(1f))
         }
@@ -162,7 +200,17 @@ fun MainScreen(onNavigate: (String) -> Unit, navController: NavController) {
 
 //Screen perfil
 @Composable
-fun TaskPieChart() {
+fun TaskPieChart(
+    totalTasks: Int,
+    completedTasks: Int
+) {
+    val completedPercent = if (totalTasks > 0) {
+        (completedTasks.toFloat() / totalTasks) * 100f
+    } else 60f
+    val pendingPercent = if (totalTasks > 0) {
+        100f - completedPercent
+    } else 40f
+
     AndroidView(
         modifier = Modifier
             .fillMaxWidth()
@@ -181,8 +229,8 @@ fun TaskPieChart() {
                 animateY(1000)
 
                 val entries = listOf(
-                    PieEntry(60f, "Completadas"),
-                    PieEntry(40f, "Pendientes")
+                    PieEntry(completedPercent, "Completadas"),
+                    PieEntry(pendingPercent, "Pendientes")
                 )
 
                 val dataSet = PieDataSet(entries, "")
@@ -191,7 +239,7 @@ fun TaskPieChart() {
                     android.graphics.Color.parseColor("#64B5F6")  // azul claro
                 )
 
-                dataSet.valueTextColor = android.graphics.Color.WHITE
+                dataSet.valueTextColor = android.graphics.Color.BLACK
                 dataSet.valueTextSize = 14f
                 dataSet.sliceSpace = 3f
                 dataSet.selectionShift = 5f
@@ -202,10 +250,10 @@ fun TaskPieChart() {
 
                 this.setDrawEntryLabels(true)
                 this.setEntryLabelTextSize(12f)
-                this.setEntryLabelColor(android.graphics.Color.DKGRAY)
+                this.setEntryLabelColor(android.graphics.Color.BLACK)
 
                 this.legend.isEnabled = true
-                this.legend.textColor = android.graphics.Color.DKGRAY
+                this.legend.textColor = android.graphics.Color.BLACK
                 this.legend.textSize = 14f
 
                 this.notifyDataSetChanged()
@@ -214,6 +262,7 @@ fun TaskPieChart() {
         }
     )
 }
+
 
 @Composable
 fun TaskLineChart() {

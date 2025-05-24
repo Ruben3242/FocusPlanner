@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.repository.TaskRepository
+import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import com.example.focus_planner.utils.SharedPreferencesManager.getUserId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TaskViewModel @Inject constructor(
-    private val repository: TaskRepository
+    private val repository: TaskRepository,
+    private val api: ApiService
 ) : ViewModel() {
 
 
@@ -140,26 +142,33 @@ class TaskViewModel @Inject constructor(
 
 
 
+    fun deleteTasksByStatuses(context: Context, statuses: List<String>) {
+        val token = getToken(context)
+        viewModelScope.launch {
+            _loading.value = true
+            try {
+                val response = api.deleteTasksByStatuses("Bearer $token", statuses)
+                if (response.isSuccessful) {
+                    Log.d("TaskViewModel", "Tareas eliminadas con estados: $statuses")
+                    loadTasks(
+                        token = token ?: "",
+                        title = _searchQuery.value,
+                        status = _statusFilter.value,
+                        priority = _priorityFilter.value,
+                        completed = _showCompleted.value,
+                        page = _page.value
+                    )
+                } else {
+                    Log.e("TaskViewModel", "Error al eliminar tareas: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("TaskViewModel", "Exception en deleteTasksByStatuses", e)
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
 
-//    fun setSearchQuery(query: String, token: String) {
-//        _searchQuery.value = query
-//        resetPagination()
-//        loadTasks(token)
-//    }
-//
-//    fun setStatusFilter(status: TaskStatus, token: String) {
-//        _statusFilter.value = status
-//        resetPagination()
-//        loadTasks(token)
-//    }
-//
-//    fun setPriorityFilter(priority: TaskPriority, token: String) {
-//        _priorityFilter.value = priority
-//        resetPagination()
-//        loadTasks(token)
-//    }
-
-    //detalles de la tarea
 
     // Función para obtener los detalles de la tarea
     fun loadTaskDetails(taskId: Long, token: String) {

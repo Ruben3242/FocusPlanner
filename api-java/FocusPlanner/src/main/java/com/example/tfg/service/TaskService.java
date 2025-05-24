@@ -318,19 +318,32 @@ public class TaskService {
 
         return addedCount + " tareas importadas, " + skippedCount + " tareas duplicadas e ignoradas.";
     }
+
     @Transactional
     public void deleteTasksByStatuses(User user, List<TaskStatus> statuses) {
-        if (statuses == null || statuses.isEmpty()) {
-            return;
-        }
+        if (statuses == null || statuses.isEmpty()) return;
+
+        List<Task> tasksToDelete;
 
         if (statuses.contains(TaskStatus.COMPLETED_OR_EXPIRED)) {
-            taskRepository.deleteAllCompletedOrExpiredTasks(user, TaskStatus.COMPLETED_OR_EXPIRED);
-            return;
+            tasksToDelete = taskRepository.findAllCompletedOrExpiredTasks(user);
+        } else {
+            tasksToDelete = taskRepository.findByUserAndStatusIn(user, statuses);
         }
 
-        taskRepository.deleteByUserAndStatusIn(user, statuses);
+        for (Task task : tasksToDelete) {
+            try {
+                if (user.getGoogleAccessToken() != null && task.getGoogleCalendarEventId() != null) {
+                    googleCalendarService.deleteCalendarEvent(task.getGoogleCalendarEventId(), user);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        taskRepository.deleteAll(tasksToDelete);
     }
+
 
     private TaskStatus calculateStatus(Task task) {
         if (task.isCompleted()) {

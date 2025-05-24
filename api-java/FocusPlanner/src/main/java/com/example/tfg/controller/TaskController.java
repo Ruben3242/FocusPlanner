@@ -147,19 +147,7 @@ public class TaskController {
         return ResponseEntity.ok("Tareas eliminadas correctamente.");
     }
 
-    @PutMapping("/api/users/{id}/settings")
-    public ResponseEntity<User> updateSettings(
-            @PathVariable Long id,
-            @RequestBody UpdateSettingsRequest request
-    ) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setRemoveCompletedExpiredTasks(request.getRemoveCompletedExpiredTasks());
-        userRepository.save(user);
-
-        return ResponseEntity.ok(user);
-    }
 
 
 }
