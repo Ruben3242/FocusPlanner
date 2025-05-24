@@ -211,11 +211,14 @@ fun ProfileScreen(
                     )
                 }
 
-
-                styledTextField(newUsername, { newUsername = it }, "Username")
-                styledTextField(newEmail, { newEmail = it }, "Email")
-                styledTextField(newFirstname, { newFirstname = it }, "Firstname")
-                styledTextField(newLastname, { newLastname = it }, "Lastname")
+                Text(
+                    text = "Perfil de ${user?.username ?: "Usuario"}",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                styledTextField(newEmail, { newEmail = it }, "Gmail")
+                styledTextField(newFirstname, { newFirstname = it }, "Nombre")
+                styledTextField(newLastname, { newLastname = it }, "Apellidos")
 
                 Button(
                     onClick = {

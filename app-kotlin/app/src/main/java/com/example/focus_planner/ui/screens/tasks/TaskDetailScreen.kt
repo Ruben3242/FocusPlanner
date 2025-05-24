@@ -3,6 +3,7 @@ package com.example.focus_planner.ui.screens.tasks
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.util.Base64
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -180,7 +181,17 @@ fun TaskDetailScreen(
                             Spacer(Modifier.height(16.dp))
                             OutlinedButton(
                                 onClick = {
-                                    val url = "https://calendar.google.com/calendar/event?eid=${t.googleCalendarEventId}"
+                                    Log.d("TaskDetailScreen", "Opening Google Calendar event: ${t.googleCalendarEventId}")
+
+                                    val userEmail = SharedPreferencesManager.getUserEmail(context)
+                                    val combined = "${t.googleCalendarEventId} $userEmail"
+                                    val encodedEid = Base64.encodeToString(
+                                        combined.toByteArray(Charsets.UTF_8),
+                                        Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP
+                                    )
+
+                                    val url = "https://calendar.google.com/calendar/event?eid=$encodedEid"
+                                    Log.d("TaskDetailScreen", "Google Calendar URL: $url")
                                     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
                                 },
                                 modifier = Modifier.fillMaxWidth(),

@@ -132,8 +132,7 @@ class ProfileViewModel @Inject constructor(
                         }
                     } else {
                         Log.d("ProfileViewModel", "No hubo cambio en el correo, redirigiendo a la home.")
-                        navController.navigate("home") {
-                            popUpTo("profile") { inclusive = true }
+                        navController.navigate("profile") {
                         }
                     }
                 } else {
