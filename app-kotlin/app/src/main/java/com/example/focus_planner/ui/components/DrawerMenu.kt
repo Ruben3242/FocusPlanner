@@ -117,7 +117,8 @@ fun MainScaffold(
                     MenuCard("Pomodoro", "pomodoro", navigateTo)
                     MenuCard("Ajustes", "settings", navigateTo)
 
-                    Spacer(modifier = Modifier.weight(1f))
+//                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.height(250.dp))
 
                     // Botón Logout estilizado
                     TextButton(

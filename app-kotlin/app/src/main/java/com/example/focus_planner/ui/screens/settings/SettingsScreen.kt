@@ -29,10 +29,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.focus_planner.data.model.User
 import com.example.focus_planner.data.model.task.TaskStatus
+import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import com.example.focus_planner.utils.SharedPreferencesManager.getUserId
 import com.example.focus_planner.viewmodel.SettingsViewModel
@@ -82,6 +85,8 @@ fun SettingsScreen(
     var showStatusDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showImportConfirmationDialog by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+
 
 
     val token = getToken(context)
@@ -164,18 +169,40 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 24.dp)
-                .verticalScroll(rememberScrollState()) // Habilita el scroll
-                .padding(horizontal = 16.dp, vertical = 24.dp) // Añade el padding
+                .padding(horizontal = 16.dp, vertical = 11.dp)
+                .verticalScroll(rememberScrollState())
                 .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Preferencias",
-                style = MaterialTheme.typography.titleMedium
-            )
+            // --- Header con título y botón Cerrar sesión ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Preferencias generales", style = MaterialTheme.typography.titleMedium)
 
+                TextButton(
+                    onClick = {
+                        clearSession(context)
+                        navController.navigate("login") {
+                            popUpTo("home") { inclusive = true }
+                        }
+                    },
+                    modifier = Modifier.height(40.dp),
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Logout, contentDescription = "Cerrar sesión")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Cerrar sesión", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                }
+            }
+
+            // --- Preferencias Generales ---
+//            Text(text = "Preferencias generales", style = MaterialTheme.typography.titleMedium)
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
@@ -201,7 +228,6 @@ fun SettingsScreen(
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
-
                             Switch(
                                 checked = isAutoDeleteEnabled.value,
                                 onCheckedChange = { newValue ->
@@ -232,69 +258,67 @@ fun SettingsScreen(
                         ) {
                             Text("Seleccionar estados")
                         }
-
-                        if (showStatusDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showStatusDialog = false },
-                                confirmButton = {
-                                    TextButton(onClick = {
-                                        if (viewModel.selectedStatuses.isNotEmpty() && token != null) {
-                                            viewModel.deleteTasksByStatuses(token, viewModel.selectedStatuses.toList())
-                                        }
-                                        showStatusDialog = false
-                                    }) {
-                                        Text("Eliminar")
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showStatusDialog = false }) {
-                                        Text("Cancelar")
-                                    }
-                                },
-                                title = { Text("Selecciona estados a eliminar") },
-                                text = {
-                                    Column {
-                                        TaskStatus.values()
-                                            .filter { it != TaskStatus.PENDING }
-                                            .forEach { status ->
-                                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                                    Checkbox(
-                                                        checked = viewModel.selectedStatuses.contains(status),
-                                                        onCheckedChange = {
-                                                            viewModel.toggleStatusSelection(context, status)
-                                                        }
-                                                    )
-
-                                                    Text(text = status.name)
-                                                }
-                                            }
-                                    }
-                                }
-                            )
-                        }
                     }
                 }
 
+                // Dialogo selección estados eliminación
+                if (showStatusDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showStatusDialog = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                if (viewModel.selectedStatuses.isNotEmpty() && token != null) {
+                                    viewModel.deleteTasksByStatuses(token, viewModel.selectedStatuses.toList())
+                                }
+                                showStatusDialog = false
+                            }) {
+                                Text("Eliminar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showStatusDialog = false }) {
+                                Text("Cancelar")
+                            }
+                        },
+                        title = { Text("Selecciona estados a eliminar") },
+                        text = {
+                            Column {
+                                TaskStatus.values()
+                                    .filter { it != TaskStatus.PENDING }
+                                    .forEach { status ->
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Checkbox(
+                                                checked = viewModel.selectedStatuses.contains(status),
+                                                onCheckedChange = {
+                                                    viewModel.toggleStatusSelection(context, status)
+                                                }
+                                            )
+                                            Text(text = status.name)
+                                        }
+                                    }
+                            }
+                        }
+                    )
+                }
+            }
 
-
-
+            // --- Importación / Exportación y Sincronización ---
+            Text(text = "Importación y sincronización", style = MaterialTheme.typography.titleMedium)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 SettingsOptionCard(
                     icon = Icons.Default.Download,
                     title = "Exportar tareas",
                     description = "Descarga tus tareas en un archivo JSON",
-                    onClick = {
-                        viewModel.exportTasks(context)
-                    }
+                    onClick = { viewModel.exportTasks(context) }
                 )
 
                 SettingsOptionCard(
                     icon = Icons.Default.Upload,
                     title = "Importar tareas",
                     description = "Sube un archivo JSON con tus tareas",
-                    onClick = {
-                        showImportConfirmationDialog = true
-                    }
+                    onClick = { showImportConfirmationDialog = true }
                 )
+
                 if (showImportConfirmationDialog) {
                     AlertDialog(
                         onDismissRequest = { showImportConfirmationDialog = false },
@@ -312,9 +336,7 @@ fun SettingsScreen(
                                     showImportConfirmationDialog = false
                                     importLauncher.launch("application/json")
                                 }
-                            ) {
-                                Text("Confirmar")
-                            }
+                            ) { Text("Confirmar") }
                         },
                         dismissButton = {
                             TextButton(onClick = { showImportConfirmationDialog = false }) {
@@ -323,20 +345,6 @@ fun SettingsScreen(
                         }
                     )
                 }
-
-
-                SettingsOptionCard(
-                    icon = Icons.Default.Help,
-                    title = "Servicio de asistencia",
-                    description = "¿Tienes dudas? Escríbenos por correo",
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("focusplanner.welcome@gmail.com")
-                            putExtra(Intent.EXTRA_SUBJECT, "Consulta desde la app FocusPlanner")
-                        }
-                        context.startActivity(intent)
-                    }
-                )
 
                 SettingsOptionCard(
                     icon = Icons.Default.CalendarToday,
@@ -349,41 +357,103 @@ fun SettingsScreen(
                         context.startActivity(intent)
                     }
                 )
-                exportedJson?.let { jsonString ->
-                    SaveFileButton(jsonString, onSaved = {
-                        viewModel.clearExportedJson()
-                    })
-                }
+            }
 
-                // Mostrar mensaje resultado import
-                importResult?.let { result ->
-                    Text(text = result)
-                    LaunchedEffect(result) {
-                        // Limpid mensaje tras mostrar
-                        viewModel.clearImportResult()
+            // --- Información y ayuda ---
+            Text(text = "Información y ayuda", style = MaterialTheme.typography.titleMedium)
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                SettingsOptionCard(
+                    icon = Icons.Default.Help,
+                    title = "Servicio de asistencia",
+                    description = "¿Tienes dudas? Escríbenos por correo",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:focusplanner.welcome@gmail.com")
+                            putExtra(Intent.EXTRA_SUBJECT, "Consulta desde la app FocusPlanner")
+                        }
+                        context.startActivity(intent)
                     }
+                )
+
+                SettingsOptionCard(
+                    icon = Icons.Default.Info,
+                    title = "Términos y condiciones",
+                    description = "Consulta los términos de uso de Focus Planner",
+                    onClick = { showTermsDialog = true }
+                )
+
+                if (showTermsDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showTermsDialog = false },
+                        confirmButton = {
+                            TextButton(onClick = { showTermsDialog = false }) {
+                                Text("Cerrar")
+                            }
+                        },
+                        title = { Text("Términos y condiciones de Focus Planner") },
+                        text = {
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(300.dp)
+                                    .verticalScroll(rememberScrollState())
+                            ) {
+                                Text(
+                                    text = """
+                                    Bienvenido a Focus Planner. Al usar esta aplicación, aceptas los siguientes términos y condiciones:
+
+                                    1. Uso de la Aplicación
+                                    Focus Planner está diseñada para ayudarte a organizar y gestionar tus tareas de manera eficiente. Te comprometes a utilizar la app de manera responsable y conforme a la ley.
+
+                                    2. Privacidad y Datos
+                                    Tus datos personales y tus tareas se almacenan en nuestra base de datos y en tu dispositivo. Nos comprometemos a proteger tu privacidad y no compartir tu información con terceros sin tu consentimiento.
+
+                                    3. Sincronización con Google Calendar
+                                    La integración con Google Calendar permite añadir tareas a tu calendario. Sin embargo, los cambios que realices directamente en Google Calendar no se sincronizarán de vuelta a Focus Planner.
+
+                                    4. Responsabilidad
+                                    Focus Planner se proporciona "tal cual". No garantizamos la ausencia de errores o interrupciones. No nos hacemos responsables de la pérdida de datos o cualquier daño derivado del uso de la app.
+
+                                    5. Cambios en los Términos
+                                    Podemos actualizar estos términos en cualquier momento. Te recomendamos revisarlos periódicamente.
+
+                                    6. Contacto
+                                    Para cualquier duda o sugerencia, contacta con nuestro equipo de soporte.
+
+                                    Gracias por confiar en Focus Planner para mejorar tu productividad.
+                                """.trimIndent(),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
+                    )
                 }
+            }
+
+            exportedJson?.let { jsonString ->
+                SaveFileButton(jsonString, onSaved = { viewModel.clearExportedJson() })
+            }
+
+            importResult?.let { result ->
+                Text(text = result)
+                LaunchedEffect(result) { viewModel.clearImportResult() }
             }
 
             Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-            Text(
-                text = "Avanzado",
-                style = MaterialTheme.typography.titleMedium
-            )
-
+            // --- Avanzado ---
+            Text(text = "Avanzado", style = MaterialTheme.typography.titleMedium)
             SettingsOptionCard(
                 icon = Icons.Default.Delete,
                 title = "Eliminar cuenta",
                 description = "Esta acción es irreversible",
                 containerColor = MaterialTheme.colorScheme.errorContainer,
                 contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                onClick = {
-                    showDeleteDialog = true
-                }
+                onClick = { showDeleteDialog = true }
             )
         }
     }
+
 }
 
 @Composable
