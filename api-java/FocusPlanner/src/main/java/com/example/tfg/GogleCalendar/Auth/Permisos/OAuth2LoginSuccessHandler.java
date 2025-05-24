@@ -7,6 +7,7 @@ import com.example.tfg.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -30,6 +31,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Autowired
     private OAuth2AuthorizedClientService authorizedClientService;
+
+    @Value("${ngrok.url}")
+    private String ngrokUrl;
 
     public OAuth2LoginSuccessHandler(JwtService jwtService, UserService userService, UserRepository userRepository) {
         this.jwtService = jwtService;
@@ -76,7 +80,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // Redirigir al frontend con ambos tokens (ten cuidado con exponer el token de Google)
         String redirectUrl = String.format(
-                "https://9679-92-189-98-92.ngrok-free.app/oauth2/success.html?token=%s&googleToken=%s",
+                ngrokUrl + "/oauth2/success.html?token=%s&googleToken=%s",
                 jwt, googleAccessToken);
 
         redirectStrategy.sendRedirect(request, response, redirectUrl);

@@ -133,19 +133,6 @@ public class UserController {
 
 
 
-
-//    @PutMapping("/{id}")
-//    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
-//        return userRepository.findById(id)
-//                .map(user -> {
-//                    user.setUsername(userDetails.getUsername());
-//                    user.setEmail(userDetails.getEmail());
-//                    user.setPassword(userDetails.getPassword());
-//                    return ResponseEntity.ok(userRepository.save(user));
-//                })
-//                .orElse(ResponseEntity.notFound().build());
-//    }
-
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         return userRepository.findById(id)
@@ -156,11 +143,6 @@ public class UserController {
                 .orElse(ResponseEntity.status(404).body("User not found"));
     }
 
-//    @GetMapping("/test-email")
-//    public String sendTestEmail() {
-//        testEmailService.sendTestEmail();
-//        return "Correo de prueba enviado. Revisa la consola para errores.";
-//    }
     @GetMapping("/profile")
     public ResponseEntity<User> getUserProfile(@RequestHeader("Authorization") String authorizationHeader) {
         try {

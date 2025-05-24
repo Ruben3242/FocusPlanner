@@ -51,6 +51,9 @@ public class SecurityConfig {
 	@Value("${spring.security.oauth2.client.registration.google.scope}")
 	private String googleScope;
 
+	@Value("${ngrok.url}")
+	private String ngrokUrl;
+
 //	@Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
 //	private String googleRedirectUri;
 
@@ -116,7 +119,7 @@ public class SecurityConfig {
 				.userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
 				.userNameAttributeName("sub")
 				.clientName("Google")
-				.redirectUri("https://9679-92-189-98-92.ngrok-free.app/api/google/callback") // Cambia esto a la URL de tu callback
+				.redirectUri(ngrokUrl + "/api/google/callback") // Cambia esto a la URL de tu callback
 				.authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
 				.clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
 				.build();

@@ -26,11 +26,48 @@ import androidx.navigation.NavController
 import com.example.focus_planner.viewmodel.TaskViewModel
 import java.util.*
 import android.app.DatePickerDialog
+import android.content.Context
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.Close
 import com.example.focus_planner.utils.SharedPreferencesManager
 import java.util.Calendar
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+@Composable
+fun TopBarWithClose(
+    title: String,
+    onCloseClick: () -> Unit
+) {
+    val barHeight = 48.dp
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(barHeight)
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
+
+        IconButton(onClick = onCloseClick) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Cerrar",
+                tint = Color.White
+            )
+        }
+    }
+}
 
 @Composable
 fun TaskDetailScreen(
@@ -41,208 +78,171 @@ fun TaskDetailScreen(
     val context = LocalContext.current
     val task by viewModel.taskDetail.collectAsState()
     val calendar = remember { Calendar.getInstance() }
-    var taskState by remember { mutableStateOf(task) }
 
-
-    val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-    fun showDatePicker(onDateSelected: (String) -> Unit) {
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                calendar.set(year, month, dayOfMonth)
-                val formattedDate = dateFormat.format(calendar.time)
-                onDateSelected(formattedDate)
-            },
-            calendar.get(Calendar.YEAR),
-            calendar.get(Calendar.MONTH),
-            calendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-
-    // Cargar tarea si no está cargada
     LaunchedEffect(taskId) {
-        taskId?.toLongOrNull()?.let {
-            viewModel.loadTaskDetail(it, context)
-        }
+        taskId?.toLongOrNull()?.let { viewModel.loadTaskDetail(it, context) }
     }
 
-    task?.let { task ->
-        val userId = SharedPreferencesManager.getUserId(context)
-        Log.d("TaskDetailScreen", "Tarea cargada: ${task.title} - ${task.description} - ${task.dueDate} - ${task.completed} - ${task.googleCalendarEventId} - ${task.status} - ${task.priority} - $userId")
-        Spacer(modifier = Modifier.height(40.dp))
-        Card(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
+    Scaffold(
+        topBar = {
+            TopBarWithClose(
+                title = "Detalle de tarea",
+                onCloseClick = { navController.popBackStack() }
+            )
+        },
+        containerColor = Color(0xFFF5F5F5) // Fondo claro
+    ) { padding ->
+        task?.let { t ->
+            val timeInfo = remember(t.dueDate) { calculateTimeRemaining(t.dueDate) }
+            val titleColor = if (t.completed) Color(0xFF2E7D32) else Color(0xFF212121)
 
-            elevation = CardDefaults.cardElevation(6.dp)
-        ) {
             Column(
                 modifier = Modifier
+                    .padding(padding)
                     .padding(20.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
+                    .verticalScroll(rememberScrollState())
             ) {
-                Text(
-                    text = task.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = task.description,
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.DateRange, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Vence: ${formatDate(task.dueDate)}")
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val timeRemainingInfo = calculateTimeRemaining(task.dueDate)
-
-                val animatedAlpha by animateFloatAsState(
-                    targetValue = if (timeRemainingInfo.urgency >= 1) 0.5f else 1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1000),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "TimeRemainingAlpha"
-                )
-
-                Text(
-                    text = "Tiempo restante: ${timeRemainingInfo.text}",
-                    color = when (timeRemainingInfo.urgency) {
-                        2 -> Color.Red
-                        1 -> Color(0xFFFF9800) // Naranja
-                        else -> Color.Gray
-                    },
-                    fontWeight = if (timeRemainingInfo.urgency >= 1) FontWeight.Bold else FontWeight.Normal,
-                    modifier = Modifier.alpha(animatedAlpha)
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Botón completar
-                if (!task.completed) {
-                    Button(
-                        onClick = { viewModel.markTaskAsCompleted(context) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Marcar como completada")
-                    }
-                } else {
-                    Text(
-                        text = "¡Tarea completada!",
-                        color = Color(0xFF4CAF50),
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-
-                if (timeRemainingInfo.text == "Expirada") {
-                    Button(
-                        onClick = {
-                            showDatePicker { newDate ->
-                                viewModel.updateTaskDueDate(task.id, newDate, context)
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)) // amarillo llamativo
-                    ) {
-                        Text("Cambiar fecha de vencimiento")
-                    }
-                }
-
-
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Enlace a Google Calendar
-                if (!task.googleCalendarEventId.isNullOrEmpty()) {
-                    OutlinedButton(
-                        onClick = {
-                            val url =
-                                "https://calendar.google.com/calendar/event?eid=${task.googleCalendarEventId}"
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                            context.startActivity(intent)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = "Abrir en Google Calendar",
-                            tint = MaterialTheme.colorScheme.primary
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(6.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFFFFFF)) // blanco
+                ) {
+                    Column(Modifier.padding(20.dp)) {
+                        Text(
+                            text = t.title,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = titleColor
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Ver en Google Calendar")
-                    }
-                }
 
-                Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(Modifier.height(8.dp))
 
-                // Botón volver
-                OutlinedButton(
-                    onClick = { navController.popBackStack() },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Volver")
-                }
+                        Text(
+                            text = t.description,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color(0xFF616161) // gris oscuro
+                        )
 
-//// Si está expirada, mostrar botón para cambiar fecha
-//                if (timeRemainingInfo.text == "Expirada") {
-//                    Spacer(modifier = Modifier.height(8.dp))
-//                    OutlinedButton(
-//                        onClick = {
-//                            // Aquí podrías abrir un DatePickerDialog para cambiar la fecha
-//                            // Por ahora solo simula la acción
-//                            // TODO: implementar lógica para seleccionar nueva fecha
-//                        },
-//                        modifier = Modifier.fillMaxWidth()
-//                    ) {
-//                        Text("Cambiar fecha de vencimiento")
-//                    }
-//                }
+                        Spacer(Modifier.height(16.dp))
 
-                val taskDeleted by viewModel.taskDeleted.collectAsState()
-                LaunchedEffect(taskDeleted) {
-                    if (taskDeleted == true) {
-                        navController.navigate("tasks") {
-                            popUpTo("tasks") { inclusive = true }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.DateRange, null, tint = Color(0xFF1976D2))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "Vence: ${formatDate(t.dueDate)}",
+                                color = Color(0xFF424242)
+                            )
                         }
-                        viewModel.resetTaskDeleted() // esta función la crearemos en el paso 2
+
+                        Spacer(Modifier.height(8.dp))
+                        val urgencyColor = when (timeInfo.urgency) {
+                            2 -> Color(0xFFD32F2F) // rojo
+                            1 -> Color(0xFFFFA000) // ámbar
+                            else -> Color(0xFF757575) // gris
+                        }
+
+                        Text(
+                            text = "Tiempo restante: ${timeInfo.text}",
+                            color = urgencyColor,
+                            fontWeight = if (timeInfo.urgency > 0) FontWeight.Bold else FontWeight.Normal
+                        )
+
+                        Spacer(Modifier.height(24.dp))
+                        if (!t.completed) {
+                            Button(
+                                onClick = { viewModel.markTaskAsCompleted(context) },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF66BB6A))
+                            ) { Text("Marcar como completada") }
+                        } else {
+                            Text(
+                                text = "¡Tarea completada!",
+                                color = Color(0xFF388E3C),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        if (timeInfo.text == "Expirada") {
+                            Spacer(Modifier.height(12.dp))
+                            Button(
+                                onClick = {
+                                    showDatePicker(context, calendar) { newDate ->
+                                        viewModel.updateTaskDueDate(t.id, newDate, context)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFD54F))
+                            ) { Text("Cambiar fecha de vencimiento") }
+                        }
+
+                        if (!t.googleCalendarEventId.isNullOrEmpty()) {
+                            Spacer(Modifier.height(16.dp))
+                            OutlinedButton(
+                                onClick = {
+                                    val url = "https://calendar.google.com/calendar/event?eid=${t.googleCalendarEventId}"
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                border = BorderStroke(1.dp, Color(0xFF1565C0))
+                            ) {
+                                Icon(Icons.Default.DateRange, null, tint = Color(0xFF1565C0))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Ver en Google Calendar", color = Color(0xFF1565C0))
+                            }
+                        }
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-                Button(
-                    onClick = {
-                        viewModel.deleteTask(context, task.id)
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                ) {
-                    Text("Eliminar tarea", color = Color.White)
-                }
+                Spacer(Modifier.height(20.dp))
 
+                OutlinedButton(
+                    onClick = { navController.navigate("editTask/${t.id}") },
+                    modifier = Modifier.fillMaxWidth(),
+                    border = BorderStroke(1.dp, Color.Gray),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF212121))
+                ) { Text("Editar") }
+
+                Spacer(Modifier.height(8.dp))
+
+                Button(
+                    onClick = { viewModel.deleteTask(context, t.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
+                ) { Text("Eliminar tarea", color = Color.White) }
+
+                val deleted by viewModel.taskDeleted.collectAsState()
+                LaunchedEffect(deleted) {
+                    if (deleted == true) {
+                        navController.navigate("tasks") { popUpTo("tasks") { inclusive = true } }
+                        viewModel.resetTaskDeleted()
+                    }
+                }
             }
         }
-
     }
 }
+
+
+/* util: date-picker */
+private fun showDatePicker(
+    context: Context,
+    calendar: Calendar,
+    onDateSelected: (String) -> Unit
+) {
+    val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    DatePickerDialog(
+        context,
+        { _, y, m, d ->
+            calendar.set(y, m, d)
+            onDateSelected(format.format(calendar.time))
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    ).show()
+}
+
 
 private fun formatDate(dueDate: String?): String {
     return try {

@@ -17,6 +17,10 @@ public class EmailService {
 
     @Value("${verification.url}")
     private String verificationUrl;
+
+    @Value("${ngrok.url}")
+    private String ngrokUrl;
+
     private final JavaMailSender mailSender;
 
     public EmailService(JavaMailSender mailSender) {
@@ -26,7 +30,7 @@ public class EmailService {
     @Async
     public void sendVerificationEmail(User user, String token) {
         System.out.println("Enviando correo de verificación a: " + user.getEmail());
-        String verificationLink = verificationUrl + "?token=" + token;
+        String verificationLink = ngrokUrl + "/api/auth/verify?token=" + token;
 
         String subject = "Verificación de Cuenta";
         String body = "<html>"
