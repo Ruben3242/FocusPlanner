@@ -1,11 +1,7 @@
 package com.example.focus_planner.ui.screens.tasks
 
-import android.app.DatePickerDialog
 import android.content.Context
-import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,14 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,15 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
-import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.data.model.task.TaskStatus
-import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.viewmodel.TaskViewModel
-import java.util.Calendar
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.focus_planner.ui.components.TopBarWithClose
 
 
@@ -96,12 +83,15 @@ fun EditTaskScreen(
                 selectedDate = dueDate,
                 onDateSelected = { dueDate = it }
             )
+            val priorityOptions = TaskPriority.entries.map { it.displayName to it.value }
 
             DropdownSelector(
                 label = "Prioridad",
-                options = TaskPriority.entries.map { it.name },
-                selectedValue = priority.name,
-                onValueChanged = { priority = TaskPriority.valueOf(it!!) }
+                options = priorityOptions,
+                selectedValue = priority.value,
+                onValueChanged = { selected ->
+                    priority = TaskPriority.entries.first { it.value == selected }
+                },
             )
 
             Spacer(modifier = Modifier.height(12.dp))

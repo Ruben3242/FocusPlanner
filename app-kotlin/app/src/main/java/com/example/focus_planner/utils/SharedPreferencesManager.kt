@@ -17,7 +17,11 @@ object SharedPreferencesManager {
     private const val LOGIN_TIMESTAMP_KEY = "login_timestamp"
     private const val KEY_USER_ID = "user_id"
     private const val KEY_USER_EMAIL = "user_email"
+    private const val KEY_USER_NAME = "user_name"
     private const val KEY_SELECTED_STATUSES = "selected_statuses"
+    private const val KEY_LAST_STATUSES = "last_selected_statuses"
+
+    const val KEY_PROFILE_IMAGE_URI = "profile_image_uri"
     const val KEY_IS_RUNNING = "is_running"
     const val KEY_TIME_LEFT = "time_left"
     const val KEY_WORK_TIME = "work_time"
@@ -128,6 +132,14 @@ object SharedPreferencesManager {
             null
         }
     }
+    fun saveUserName(context: Context, username: String) {
+        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPrefs.edit().putString(KEY_USER_NAME, username).apply()
+    }
+    fun getUserName(context: Context): String? {
+        val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPrefs.getString(KEY_USER_NAME, null)
+    }
     fun saveUserEmail(context: Context, email: String) {
         val sharedPrefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         sharedPrefs.edit().putString(KEY_USER_EMAIL, email).apply()
@@ -180,6 +192,19 @@ object SharedPreferencesManager {
             .getStringSet("selected_statuses", emptySet()) ?: emptySet()
         return saved.mapNotNull { runCatching { TaskStatus.valueOf(it) }.getOrNull() }
     }
+    fun saveLastStatuses(context: Context, statuses: List<TaskStatus>) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putStringSet(KEY_LAST_STATUSES, statuses.map { it.name }.toSet())
+            .apply()
+    }
+    fun getLastStatuses(context: Context): List<TaskStatus> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val names = prefs.getStringSet(KEY_LAST_STATUSES, emptySet()) ?: emptySet()
+        return names.mapNotNull { name -> TaskStatus.entries.find { it.name == name } }
+    }
+
+
     fun saveSelectedStatuses(context: Context, statuses: List<TaskStatus>) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
@@ -207,12 +232,12 @@ object SharedPreferencesManager {
 
     fun saveProfileImageUri(context: Context, uri: Uri?) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString("profile_image_uri", uri?.toString()).apply()
+        prefs.edit().putString(KEY_PROFILE_IMAGE_URI, uri?.toString()).apply()
     }
 
     fun loadProfileImageUri(context: Context): Uri? {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val uriString = prefs.getString("profile_image_uri", null)
+        val uriString = prefs.getString(KEY_PROFILE_IMAGE_URI, null)
         return uriString?.let { Uri.parse(it) }
     }
     fun savePomodoroState(

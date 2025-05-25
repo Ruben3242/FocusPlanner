@@ -58,6 +58,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.focus_planner.R
@@ -71,6 +72,7 @@ import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.loadProfileImageUri
 import com.example.focus_planner.utils.SharedPreferencesManager.saveProfileImageUri
 import com.example.focus_planner.utils.TokenManager
+import com.example.focus_planner.viewmodel.ProfileImageViewModel
 import com.example.focus_planner.viewmodel.ProfileViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.data.BarData
@@ -701,6 +703,8 @@ fun ProfileImagePicker(
     defaultImageRes: Int = R.drawable.user,
 ) {
     val context = LocalContext.current
+    val viewModel: ProfileImageViewModel = hiltViewModel()
+
     var selectedImageUri by rememberSaveable {
         mutableStateOf(loadProfileImageUri(context)) // Cargamos desde prefs
     }
@@ -721,6 +725,7 @@ fun ProfileImagePicker(
 
             // Guardamos en SharedPreferences
             selectedImageUri = uri
+            viewModel.updateProfileImage(uri)
             saveProfileImageUri(context, uri)
         }
     }

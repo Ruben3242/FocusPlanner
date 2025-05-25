@@ -103,7 +103,7 @@ class TaskViewModel @Inject constructor(
     }
 
     fun loadNextPage() {
-        _page.value = _page.value + 1
+        _page.value += 1
     }
 
     private fun loadTasks(

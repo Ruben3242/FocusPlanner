@@ -102,6 +102,8 @@ class UserViewModel @Inject constructor(
                             val user = profileResponse.body()
                             if (user != null) {
                                 SharedPreferencesManager.saveUserId(context, user.id)
+                                SharedPreferencesManager.saveUserEmail(context, user.email)
+                                SharedPreferencesManager.saveUserName(context, user.username)
                                 Log.d("UserViewModel", "ID de usuario guardado: ${user.id}")
                             } else {
                                 Log.e("UserViewModel", "Usuario nulo al obtener perfil")

@@ -73,6 +73,7 @@ public class TaskService {
     @Transactional
     public void deleteCompletedExpiredTasks(User user) {
         taskRepository.deleteAllCompletedOrExpiredTasks(user, TaskStatus.COMPLETED_OR_EXPIRED);
+        deleteTasksByStatuses(user, List.of(TaskStatus.COMPLETED_OR_EXPIRED));
     }
 
     public Page<Task> getTasksByState(boolean completed, Pageable pageable) {

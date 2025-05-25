@@ -33,6 +33,7 @@ import com.example.focus_planner.utils.PreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.getSelectedStatuses
 import com.example.focus_planner.viewmodel.CalendarViewModel
+import com.example.focus_planner.viewmodel.ProfileImageViewModel
 import com.example.focus_planner.viewmodel.ProfileViewModel
 import com.example.focus_planner.viewmodel.SettingsViewModel
 import com.example.focus_planner.viewmodel.TaskViewModel
@@ -59,7 +60,9 @@ fun AppNavigation(
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
     val currentRoute = currentBackStackEntry.value?.destination?.route ?: startDestination
-    MainScaffold(navController = navController,currentRoute = currentRoute, content =  {
+    val profileImageViewModel: ProfileImageViewModel = hiltViewModel()
+
+    MainScaffold(navController = navController,currentRoute = currentRoute, profileImageViewModel = profileImageViewModel,content =  {
 
         NavHost(navController = navController, startDestination = startDestination) {
             composable("login") { LoginScreen(navController) }
@@ -91,6 +94,7 @@ fun AppNavigation(
                 LaunchedEffect(Unit) {
                     taskViewModel.setToken(token)
                     val statuses = getSelectedStatuses(context).map { it.value }
+                    Log.d("AppNavigation", "Selected statuses: $statuses")
                     if (statuses.isNotEmpty()) {
                         taskViewModel.deleteTasksByStatuses(context, statuses)
                     } else {
@@ -142,7 +146,7 @@ fun AppNavigation(
                     onTaskAdded = {
                         navController.navigate("tasks")
                     },
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { navController.navigate("tasks") },
                     viewModel = taskViewModel,
                 )
             }
@@ -152,7 +156,7 @@ fun AppNavigation(
                 EditTaskScreen(
                     taskId = taskId,
                     onTaskUpdated = { navController.popBackStack() },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { navController.navigate("tasks") }
                 )
             }
             composable("pomodoro") {

@@ -25,10 +25,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import com.example.focus_planner.data.model.task.CalendarTask
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
+import com.example.focus_planner.ui.components.DropdownMenuBox
 import com.example.focus_planner.ui.components.TopBarWithClose
 import com.example.focus_planner.ui.screens.home.AccentColor
 import com.example.focus_planner.ui.screens.home.BackgroundColor
@@ -94,6 +96,11 @@ fun CalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
                 onNextMonth = {
                     if (token != null) {
                         viewModel.onMonthChanged(currentMonth.plusMonths(1), token)
+                    }
+                },
+                onSelectMonthYear = { selectedYearMonth ->
+                    if (token != null) {
+                        viewModel.onMonthChanged(selectedYearMonth, token)
                     }
                 }
             )
@@ -185,6 +192,70 @@ fun CalendarScreen(viewModel: CalendarViewModel, navController: NavController) {
 }
 
 @Composable
+fun MonthYearPickerDialog(
+    initialYearMonth: YearMonth,
+    onDismiss: () -> Unit,
+    onConfirm: (YearMonth) -> Unit
+) {
+    val years = (2000..2050).toList()
+    var selectedYear by remember { mutableStateOf(initialYearMonth.year) }
+    var selectedMonth by remember { mutableStateOf(initialYearMonth.monthValue) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = Color.DarkGray
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Selecciona mes y año",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    // Selector de Mes
+                    DropdownMenuBox(
+                        items = (1..12).toList(),
+                        selectedItem = selectedMonth,
+                        itemToString = { month -> Month.of(month).getDisplayName(TextStyle.FULL, Locale("es")).capitalize() },
+                        onItemSelected = { selectedMonth = it }
+                    )
+
+                    // Selector de Año
+                    DropdownMenuBox(
+                        items = years,
+                        selectedItem = selectedYear,
+                        itemToString = { it.toString() },
+                        onItemSelected = { selectedYear = it },
+                        isNumeric = true // Para permitir solo números
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancelar", color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = { onConfirm(YearMonth.of(selectedYear, selectedMonth)) }) {
+                        Text("Aceptar", color = Color.White)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TaskCard(task: CalendarTask, onClick: () -> Unit) {
     Card(
         modifier = Modifier
@@ -232,7 +303,25 @@ fun LegendItem(color: Color, label: String, hasBorder: Boolean = false) {
 
 
 @Composable
-fun Header(month: YearMonth, onPreviousMonth: () -> Unit, onNextMonth: () -> Unit) {
+fun Header(
+    month: YearMonth,
+    onPreviousMonth: () -> Unit,
+    onNextMonth: () -> Unit,
+    onSelectMonthYear: (YearMonth) -> Unit
+) {
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        MonthYearPickerDialog(
+            initialYearMonth = month,
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                onSelectMonthYear(it)
+                showDialog = false
+            }
+        )
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -241,16 +330,20 @@ fun Header(month: YearMonth, onPreviousMonth: () -> Unit, onNextMonth: () -> Uni
         IconButton(onClick = onPreviousMonth) {
             Icon(Icons.Default.ArrowBack, contentDescription = "Anterior", tint = Color.White)
         }
+
         Text(
             text = "${month.month.getDisplayName(TextStyle.FULL, Locale("es"))} ${month.year}",
             style = MaterialTheme.typography.titleLarge,
-            color = Color.White
+            color = Color.White,
+            modifier = Modifier.clickable { showDialog = true }
         )
+
         IconButton(onClick = onNextMonth) {
             Icon(Icons.Default.ArrowForward, contentDescription = "Siguiente", tint = Color.White)
         }
     }
 }
+
 
 @Composable
 fun DayOfWeekHeader() {

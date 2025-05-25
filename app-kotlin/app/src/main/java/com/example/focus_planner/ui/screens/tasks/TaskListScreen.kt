@@ -1,16 +1,17 @@
 package com.example.focus_planner.ui.screens.tasks
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -18,14 +19,19 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PriorityHigh
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -34,7 +40,6 @@ import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.data.model.task.TaskStatus
 import com.example.focus_planner.viewmodel.TaskViewModel
-import androidx.compose.material3.TextFieldDefaults
 import com.example.focus_planner.utils.TokenManager
 
 
@@ -68,7 +73,6 @@ fun TaskListTopBar(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(
     onTaskClick: (Task) -> Unit,
@@ -89,7 +93,7 @@ fun TaskListScreen(
     var searchQuery by remember { mutableStateOf("") }
     var statusFilter by remember { mutableStateOf<String?>(null) }
     var priorityFilter by remember { mutableStateOf<String?>(null) }
-    var showCompleted by remember { mutableStateOf(false) }
+    var showCompleted by remember { mutableStateOf(true) }
     Scaffold(
         topBar = {
             TaskListTopBar(navController)
@@ -128,6 +132,8 @@ fun TaskListScreen(
 
 
             Spacer(modifier = Modifier.height(8.dp))
+            val statusFilterOptions = listOf("Todas" to null) + TaskStatus.entries.map { it.displayName to it.value }
+            val priorityFilterOptions = listOf("Todas" to null) + TaskPriority.entries.map { it.displayName to it.value }
 
             // Filtros desplegables
             Row(
@@ -136,7 +142,7 @@ fun TaskListScreen(
             ) {
                 DropdownSelector(
                     label = "Estado",
-                    options = listOf(null) + TaskStatus.values().map { it.value },
+                    options = statusFilterOptions,
                     selectedValue = statusFilter,
                     onValueChanged = {
                         statusFilter = it
@@ -144,10 +150,12 @@ fun TaskListScreen(
                     },
                     modifier = Modifier.weight(1f)
                 )
+
                 Spacer(modifier = Modifier.width(8.dp))
+
                 DropdownSelector(
                     label = "Prioridad",
-                    options = listOf(null) + TaskPriority.values().map { it.value },
+                    options = priorityFilterOptions,
                     selectedValue = priorityFilter,
                     onValueChanged = {
                         priorityFilter = it
@@ -257,128 +265,141 @@ fun TaskCard(
     navController: NavController
 ) {
     var offsetX by remember { mutableStateOf(0f) }
-    var isExpanded by remember { mutableStateOf(false) }
+    val maxSwipe = 250f
 
-    val maxSwipe = 300f
-    val iconSize = 50.dp
+    val backgroundColor = when (task.priority) {
+        TaskPriority.HIGH -> Color(0xFF1E3A8A)
+        TaskPriority.MEDIUM -> Color(0xFF334155)
+        TaskPriority.LOW -> Color(0xFF64748B)
+        else -> Color(0xFF1E293B)
+    }
+
+    val textColor = Color(0xFFE0E0E0)
+    val iconColor = if (task.completed == true) Color(0xFF38BDF8) else Color(0xFF94A3B8)
 
     val draggableState = rememberDraggableState { delta ->
         offsetX = (offsetX + delta).coerceIn(-maxSwipe, maxSwipe)
     }
 
-    val backgroundColor = when (task.priority) {
-        TaskPriority.HIGH -> Color(0xFFFFCDD2) // rojo claro
-        TaskPriority.MEDIUM -> Color(0xFFFFF9C4) // amarillo claro
-        TaskPriority.LOW -> Color(0xFFC8E6C9) // verde claro
-        else -> Color(0xFFE0E0E0) // gris claro por defecto
-    }
-
-    val statusIconColor = if (task.completed == true) Color(0xFF4CAF50) else Color.Gray
-
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-            .padding(vertical = 6.dp, horizontal = 12.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        // Fondo de acción: ELIMINAR
+        // Fondo eliminar
         if (offsetX < -30f) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color.Red.copy(alpha = 0.2f))
-                    .padding(end = 16.dp),
+                    .background(Color.Red.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.CenterEnd
             ) {
                 IconButton(onClick = { onDeleteById(task.id) }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar tarea",
+                        contentDescription = "Eliminar",
                         tint = Color.Red,
-                        modifier = Modifier.size(iconSize)
+                        modifier = Modifier.size(36.dp)
                     )
                 }
             }
         }
-        // Fondo de acción: DETALLES
+        // Fondo editar
         else if (offsetX > 30f) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(Color(0xFF81C784).copy(alpha = 0.2f))
-                    .padding(start = 16.dp),
+                    .background(Color(0xFF38BDF8).copy(alpha = 0.15f)),
                 contentAlignment = Alignment.CenterStart
             ) {
                 IconButton(onClick = { navController.navigate("editTask/${task.id}") }) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Ver/Editar tarea",
-                        tint = Color(0xFF388E3C),
-                        modifier = Modifier.size(iconSize)
+                        contentDescription = "Editar",
+                        tint = Color(0xFF38BDF8),
+                        modifier = Modifier.size(36.dp)
                     )
                 }
             }
         }
 
-        // Tarjeta deslizante
         Card(
             modifier = Modifier
-                .align(Alignment.Center)
                 .offset { IntOffset(offsetX.toInt(), 0) }
                 .draggable(
                     state = draggableState,
                     orientation = Orientation.Horizontal,
                     onDragStopped = {
                         offsetX = when {
-                            offsetX > maxSwipe * 0.6f -> maxSwipe * 0.9f
-                            offsetX < -maxSwipe * 0.6f -> -maxSwipe * 0.9f
+                            offsetX > maxSwipe * 0.5f -> maxSwipe * 0.9f
+                            offsetX < -maxSwipe * 0.5f -> -maxSwipe * 0.9f
                             else -> 0f
                         }
                     }
-                )
-                .clickable { isExpanded = !isExpanded },
+                ),
+            shape = RoundedCornerShape(16.dp),
             elevation = CardDefaults.cardElevation(4.dp),
             colors = CardDefaults.cardColors(containerColor = backgroundColor)
         ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Estado tarea",
-                        tint = statusIconColor,
-                        modifier = Modifier.padding(end = 8.dp)
+                        contentDescription = "Estado",
+                        tint = iconColor,
+                        modifier = Modifier
+                            .padding(end = 12.dp)
+                            .size(30.dp)
                     )
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = task.title,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = textColor
                         )
                         Text(
                             text = "Vence: ${task.dueDate ?: "Sin fecha"}",
-                            style = MaterialTheme.typography.bodySmall
+                            fontSize = 13.sp,
+                            color = textColor.copy(alpha = 0.7f)
                         )
                     }
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Aquí colocamos el badge de prioridad
+                    PriorityBadge(priority = task.priority)
                 }
 
-                AnimatedVisibility(visible = isExpanded) {
-                    Column(
-                        modifier = Modifier
-                            .padding(top = 10.dp)
-                            .fillMaxWidth()
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = task.description ?: "Sin descripción",
+                    fontSize = 14.sp,
+                    color = textColor,
+                    maxLines = 4,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Estado: ${task.status.displayName}",
+                        color = textColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                    OutlinedButton(
+                        onClick = { navController.navigate("taskDetailScreen/${task.id}") },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = textColor),
+                        border = BorderStroke(1.dp, textColor.copy(alpha = 0.6f))
                     ) {
-                        Divider(modifier = Modifier.padding(vertical = 4.dp))
-                        Text(text = task.description ?: "Sin descripción")
-                        Text(text = "Estado: ${task.status}")
-                        Text(text = "Prioridad: ${task.priority}")
-                        Button(
-                            onClick = { navController.navigate("taskDetailScreen/${task.id}") },
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .padding(top = 8.dp)
-                        ) {
-                            Text("Más información")
-                        }
+                        Text("Detalles")
                     }
                 }
             }
@@ -386,20 +407,61 @@ fun TaskCard(
     }
 }
 
+data class PriorityInfo(
+    val label: String,
+    val color: Color,
+    val icon: ImageVector,
+    val iconTint: Color
+)
+
+
+@Composable
+fun PriorityBadge(priority: TaskPriority) {
+    val priorityInfo = when (priority) {
+        TaskPriority.HIGH -> PriorityInfo("ALTA", Color(0xFFDC2626), Icons.Default.Warning, Color.White)
+        TaskPriority.MEDIUM -> PriorityInfo("MEDIA", Color(0xFFF59E0B), Icons.Default.PriorityHigh, Color.Black)
+        TaskPriority.LOW -> PriorityInfo("BAJA", Color(0xFF10B981), Icons.Default.CheckCircle, Color.Black)
+        else -> PriorityInfo("DESCONOCIDA", Color.Gray, Icons.Default.Info, Color.White)
+    }
+
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .background(priorityInfo.color, shape = RoundedCornerShape(50))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Icon(
+            imageVector = priorityInfo.icon,
+            contentDescription = "Icono prioridad",
+            tint = priorityInfo.iconTint,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = priorityInfo.label,
+            color = priorityInfo.iconTint,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
+    }
+}
 
 @Composable
 fun DropdownSelector(
     label: String,
-    options: List<String?>,
+    options: List<Pair<String, String?>>,
     selectedValue: String?,
     onValueChanged: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val selectedDisplay = options.find { it.second == selectedValue }?.first ?: "Todas"
+
 
     Box(modifier = modifier) {
         OutlinedTextField(
-            value = selectedValue ?: "Todos",
+            value = selectedDisplay,
             onValueChange = {},
             label = { Text(label, color = Color.Gray) },
             readOnly = true,
@@ -428,11 +490,11 @@ fun DropdownSelector(
             onDismissRequest = { expanded = false },
             modifier = Modifier.background(Color.White)
         ) {
-            options.forEach { option ->
+            options.forEach { (display, value) ->
                 DropdownMenuItem(
-                    text = { Text(option ?: "Todos", color = Color.Black) },
+                    text = { Text(display, color = Color.Black) },
                     onClick = {
-                        onValueChanged(option)
+                        onValueChanged(value)
                         expanded = false
                     }
                 )

@@ -18,13 +18,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import com.example.focus_planner.data.model.task.Task
 import com.example.focus_planner.data.model.task.TaskPriority
 import com.example.focus_planner.data.model.task.TaskStatus
@@ -44,14 +40,6 @@ import com.example.focus_planner.ui.components.TopBarWithClose
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.viewmodel.TaskViewModel
 import java.util.Calendar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material3.Icon
-import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
-import androidx.compose.foundation.Image
 
 @Composable
 fun AddTaskScreen(
@@ -159,11 +147,11 @@ fun AddTaskScreen(
 //                onValueChanged = { status = it?.let { it1 -> TaskStatus.valueOf(it1) }!! },
 //                modifier = Modifier.fillMaxWidth()
 //            )
-
+            val priorityOptions = TaskPriority.entries.map { it.displayName to it.value }
             DropdownSelector(
                 label = "Prioridad",
-                options = TaskPriority.entries.map { it.name },
-                selectedValue = priority.name,
+                options = priorityOptions,
+                selectedValue = priority.value,
                 onValueChanged = { priority = it?.let { it1 -> TaskPriority.valueOf(it1) }!! },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -173,7 +161,7 @@ fun AddTaskScreen(
                     checked = isCompleted,
                     onCheckedChange = { isCompleted = it }
                 )
-                Text("Completada")
+                Text("¿Completada?")
             }
 //            Spacer(modifier = Modifier.height(16.dp))
 //

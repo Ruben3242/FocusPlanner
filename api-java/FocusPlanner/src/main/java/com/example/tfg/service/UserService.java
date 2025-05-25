@@ -116,11 +116,11 @@ public class UserService {
         return "User verified successfully!";
     }
 
-    @Transactional
-    public void deleteCompletedExpiredTasks(User user) {
-        // Eliminar tareas completadas o vencidas para el usuario
-        taskRepository.deleteByUserAndStatusIn(user, List.of(TaskStatus.COMPLETED/*, TaskStatus.EXPIRED*/));
-    }
+//    @Transactional
+//    public void deleteCompletedExpiredTasks(User user) {
+//        // Eliminar tareas completadas o vencidas para el usuario
+//        taskRepository.deleteByUserAndStatusIn(user, List.of(TaskStatus.COMPLETED/*, TaskStatus.EXPIRED*/));
+//    }
 
     public User getUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));

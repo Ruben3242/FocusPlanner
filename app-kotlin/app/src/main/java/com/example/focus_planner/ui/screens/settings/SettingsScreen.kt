@@ -235,8 +235,15 @@ fun SettingsScreen(
                                     user?.let { currentUser ->
                                         viewModel.updateUserSettings(currentUser.id, token!!, newValue)
                                     }
+
+                                    if (!newValue) {
+                                        viewModel.clearSelectedStatuses(context)
+                                    } else {
+                                        viewModel.restoreLastSelectedStatuses(context)
+                                    }
                                 }
                             )
+
                         }
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -283,7 +290,7 @@ fun SettingsScreen(
                         title = { Text("Selecciona estados a eliminar") },
                         text = {
                             Column {
-                                TaskStatus.values()
+                                TaskStatus.entries
                                     .filter { it != TaskStatus.PENDING }
                                     .forEach { status ->
                                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -293,7 +300,7 @@ fun SettingsScreen(
                                                     viewModel.toggleStatusSelection(context, status)
                                                 }
                                             )
-                                            Text(text = status.name)
+                                            Text(text = status.displayName)
                                         }
                                     }
                             }
@@ -352,7 +359,7 @@ fun SettingsScreen(
                     description = "Activa la sincronización de tareas con tu calendario de Google.",
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("https://9679-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
+                            data = Uri.parse("https://3eb1-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
                         }
                         context.startActivity(intent)
                     }

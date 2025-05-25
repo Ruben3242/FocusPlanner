@@ -19,10 +19,12 @@ import com.example.focus_planner.data.repository.UserRepository
 import com.example.focus_planner.network.ApiService
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.clearSession
+import com.example.focus_planner.utils.SharedPreferencesManager.getLastStatuses
 import com.example.focus_planner.utils.SharedPreferencesManager.getSelectedStatuses
 import com.example.focus_planner.utils.SharedPreferencesManager.getToken
 import com.example.focus_planner.utils.SharedPreferencesManager.loadAutoDeleteEnabled
 import com.example.focus_planner.utils.SharedPreferencesManager.loadSelectedStatuses
+import com.example.focus_planner.utils.SharedPreferencesManager.saveLastStatuses
 import com.example.focus_planner.utils.SharedPreferencesManager.saveSelectedStatuses
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -52,6 +54,8 @@ class SettingsViewModel @Inject constructor(
     private val _autoDeleteEnabled = mutableStateOf(false)
     val autoDeleteEnabled: State<Boolean> get() = _autoDeleteEnabled
 
+    private var lastSelectedStatuses: List<TaskStatus> = emptyList() // Para restaurar selección
+
     fun loadSelectedStatuses(context: Context) {
         val saved = getSelectedStatuses(context)
         _selectedStatuses.clear()
@@ -68,9 +72,21 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun clearSelectedStatuses(context: Context) {
+        lastSelectedStatuses = _selectedStatuses.toList()
+        saveLastStatuses(context, lastSelectedStatuses) // Guardamos en disco
         _selectedStatuses.clear()
-        SharedPreferencesManager.clearSelectedStatuses(context)
+        saveSelectedStatuses(context, _selectedStatuses)
     }
+
+    fun restoreLastSelectedStatuses(context: Context) {
+        val restored = getLastStatuses(context)
+        lastSelectedStatuses = restored
+        _selectedStatuses.clear()
+        _selectedStatuses.addAll(restored)
+        saveSelectedStatuses(context, _selectedStatuses)
+    }
+
+
     fun toggleStatusSelection(status: TaskStatus) {
         if (_selectedStatuses.contains(status)) {
             _selectedStatuses.remove(status)
