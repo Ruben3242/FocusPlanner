@@ -75,7 +75,15 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    // Retrofit y Gson para la API
+
+// Jetpack Compose Pager
+    implementation("com.google.accompanist:accompanist-pager:0.30.1")
+
+// Lottie Compose
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
+
+// DataStore
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
 
     // Retrofit

@@ -1,4 +1,4 @@
-package com.example.focus_planner.ui.auth
+package com.example.focus_planner.ui.screens.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*

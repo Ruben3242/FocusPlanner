@@ -16,11 +16,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
-import com.example.focus_planner.ui.auth.LoginScreen
-import com.example.focus_planner.ui.auth.RegisterScreen
+import com.example.focus_planner.ui.screens.auth.LoginScreen
+import com.example.focus_planner.ui.screens.auth.RegisterScreen
 import com.example.focus_planner.ui.components.MainScaffold
 import com.example.focus_planner.ui.screens.calendar.CalendarScreen
 import com.example.focus_planner.ui.screens.home.MainScreen
+import com.example.focus_planner.ui.screens.onborading.OnboardingScreen
 import com.example.focus_planner.ui.screens.organizacion.PomodoroScreen
 import com.example.focus_planner.ui.screens.profile.ProfileScreen
 import com.example.focus_planner.ui.screens.settings.SettingsScreen
@@ -28,6 +29,7 @@ import com.example.focus_planner.ui.screens.tasks.AddTaskScreen
 import com.example.focus_planner.ui.screens.tasks.EditTaskScreen
 import com.example.focus_planner.ui.screens.tasks.TaskDetailScreen
 import com.example.focus_planner.ui.screens.tasks.TaskListScreen
+import com.example.focus_planner.utils.PreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.getSelectedStatuses
 import com.example.focus_planner.viewmodel.CalendarViewModel
@@ -45,8 +47,15 @@ fun AppNavigation(
     val context = LocalContext.current
     val token = SharedPreferencesManager.getToken(context)
     val tokenExpired = SharedPreferencesManager.isTokenExpired(context)
+    val preferencesManager = PreferencesManager(context)
+    val onboardingCompleted = preferencesManager.isOnboardingCompleted(context)
 
-    val startDestination = if (token != null && !tokenExpired) "home" else "login"
+//    val startDestination = if (token != null && !tokenExpired) "home" else "login"
+    val startDestination = when {
+        token == null || tokenExpired -> "login"
+        !onboardingCompleted -> "onboarding"
+        else -> "home"
+    }
     val currentBackStackEntry = navController.currentBackStackEntryAsState()
 
     val currentRoute = currentBackStackEntry.value?.destination?.route ?: startDestination
@@ -67,6 +76,12 @@ fun AppNavigation(
                 )
 
             }
+            composable("onboarding") {
+                OnboardingScreen(
+                    navController = navController
+                )
+            }
+
             composable("tasks") {
                 val context = LocalContext.current
                 val taskViewModel: TaskViewModel = hiltViewModel()

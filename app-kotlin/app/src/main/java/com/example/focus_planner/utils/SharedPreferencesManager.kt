@@ -158,6 +158,10 @@ object SharedPreferencesManager {
             .getLong(EXPIRATION_KEY, 0)
     }
 
+    fun getPreferences(context: Context): android.content.SharedPreferences {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
+
     fun saveAutoDeleteEnabled(context: Context, value: Boolean) {
         context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .edit()

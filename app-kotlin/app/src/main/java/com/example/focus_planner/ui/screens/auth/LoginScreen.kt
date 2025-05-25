@@ -1,4 +1,4 @@
-package com.example.focus_planner.ui.auth
+package com.example.focus_planner.ui.screens.auth
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.focus_planner.network.RetrofitInstance
+import com.example.focus_planner.utils.PreferencesManager
 import com.example.focus_planner.viewmodel.UserViewModel
 import com.example.focus_planner.viewmodel.UserViewModelFactory
 
@@ -33,6 +34,12 @@ fun LoginScreen(navController: NavController) {
 
     var isLoading by remember { mutableStateOf(false) }
     var loginFailed by remember { mutableStateOf(false) }
+
+    val preferencesManager = PreferencesManager(context)
+
+    val onboardingCompleted = preferencesManager.isOnboardingCompleted(context)
+
+    val destination = if (onboardingCompleted) "home" else "onboarding"
 
     Column(
         modifier = Modifier
@@ -82,7 +89,7 @@ fun LoginScreen(navController: NavController) {
                         isLoading = false
                         if (success) {
                             loginFailed = false
-                            navController.navigate("home") {
+                            navController.navigate(destination) {
                                 popUpTo("login") { inclusive = true }
                             }
                         } else {
