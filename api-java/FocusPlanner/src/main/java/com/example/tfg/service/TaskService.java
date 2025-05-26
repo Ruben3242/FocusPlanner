@@ -325,12 +325,7 @@ public class TaskService {
         if (statuses == null || statuses.isEmpty()) return;
 
         List<Task> tasksToDelete;
-
-        if (statuses.contains(TaskStatus.COMPLETED_OR_EXPIRED)) {
-            tasksToDelete = taskRepository.findAllCompletedOrExpiredTasks(user);
-        } else {
-            tasksToDelete = taskRepository.findByUserAndStatusIn(user, statuses);
-        }
+        tasksToDelete = taskRepository.findByUserAndStatusIn(user, statuses);
 
         for (Task task : tasksToDelete) {
             try {

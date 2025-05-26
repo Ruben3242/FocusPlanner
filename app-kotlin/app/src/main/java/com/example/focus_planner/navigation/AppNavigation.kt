@@ -7,6 +7,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -90,6 +93,7 @@ fun AppNavigation(
                 val taskViewModel: TaskViewModel = hiltViewModel()
 
                 val token = SharedPreferencesManager.getToken(context) ?: ""
+                var filteringInitialized by remember { mutableStateOf(false) }
 
                 LaunchedEffect(Unit) {
                     taskViewModel.setToken(token)
@@ -97,10 +101,12 @@ fun AppNavigation(
                     Log.d("AppNavigation", "Selected statuses: $statuses")
                     if (statuses.isNotEmpty()) {
                         taskViewModel.deleteTasksByStatuses(context, statuses)
+                        taskViewModel.initializeFiltering() // <--- Forzar recarga
                     } else {
                         taskViewModel.initializeFiltering()
                     }
                 }
+
 
 
                 val tasks by taskViewModel.taskList.collectAsState()

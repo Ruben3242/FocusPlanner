@@ -359,7 +359,7 @@ fun SettingsScreen(
                     description = "Activa la sincronización de tareas con tu calendario de Google.",
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("https://3eb1-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
+                            data = Uri.parse("https://3c40-92-189-98-92.ngrok-free.app/oauth2/authorization/google")
                         }
                         context.startActivity(intent)
                     }

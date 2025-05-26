@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.CountDownTimer
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.example.focus_planner.MainActivity
 import com.example.focus_planner.R
 import com.example.focus_planner.utils.SharedPreferencesManager
 import com.example.focus_planner.utils.SharedPreferencesManager.savePomodoroState
@@ -16,20 +17,31 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 fun showPomodoroNotification(context: Context, title: String, message: String) {
-    if (NotificationManagerCompat.from(context).areNotificationsEnabled()) {
-        val notificationManager = NotificationManagerCompat.from(context)
-        notificationManager.cancel(1)
+    if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
 
-        val builder = NotificationCompat.Builder(context, "pomodoro_channel")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-
-        notificationManager.notify(1, builder.build())
+    val launchIntent = Intent(context, MainActivity::class.java).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        putExtra("navigate_to", "pomodoro")
     }
+
+    val pendingIntent = PendingIntent.getActivity(
+        context,
+        0,
+        launchIntent,
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    val builder = NotificationCompat.Builder(context, "pomodoro_channel")
+        .setSmallIcon(R.drawable.ic_launcher_foreground)
+        .setContentTitle(title)
+        .setContentText(message)
+        .setContentIntent(pendingIntent) // <- Aquí se lanza la app al tocar la notificación
+        .setAutoCancel(true)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+
+    NotificationManagerCompat.from(context).notify(1, builder.build())
 }
+
 
 
 fun updatePomodoroProgressNotification(
@@ -62,6 +74,7 @@ fun updatePomodoroProgressNotification(
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .setOnlyAlertOnce(true)
+
 //        .addAction(R.drawable.pause, actionText, pendingIntent)
 
     NotificationManagerCompat.from(context).notify(1, builder.build())

@@ -31,6 +31,7 @@ import com.example.focus_planner.viewmodel.UserViewModelFactory
 import com.jakewharton.threetenabp.AndroidThreeTen
 import dagger.hilt.android.AndroidEntryPoint
 import android.Manifest
+import android.util.Log
 
 
 @AndroidEntryPoint
@@ -62,6 +63,10 @@ class MainActivity : ComponentActivity() {
             val navController = rememberNavController()
             FocusPlannerTheme{
                 AppNavigation(navController = navController, userViewModel = userViewModel)
+            }
+            if (intent?.getBooleanExtra("pomodoro", false) == true) {
+                // Aquí puedes usar una variable compartida, una ViewModel o una función de navegación para cambiar de pantalla
+                Log.d("MainActivity", "Abrir Pomodoro desde notificación")
             }
 
         }

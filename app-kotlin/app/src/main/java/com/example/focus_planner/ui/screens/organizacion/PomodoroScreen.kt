@@ -215,7 +215,7 @@ fun PomodoroScreen(
                 TimeInputDialog(
                     title = "Establecer tiempo de trabajo",
                     initialValue = workTimeInput.toInt(),
-                    valueRange = 25..60,
+                    valueRange = 10..60,
                     onDismiss = { showWorkDialog = false },
                     onConfirm = {
                         workTimeInput = it.toFloat()
