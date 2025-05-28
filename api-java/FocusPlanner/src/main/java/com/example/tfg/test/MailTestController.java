@@ -16,7 +16,7 @@ public class MailTestController {
     @GetMapping("/send-test-email")
     public ResponseEntity<String> sendTestEmail() {
         try {
-            emailService.sendEmail("rloruben555@gmail.com", "Prueba", "Este es un correo de prueba");
+            emailService.sendEmail("usuariodeprueba@gmail.com", "Prueba", "Este es un correo de prueba");
             return ResponseEntity.ok("Correo enviado con éxito.");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error al enviar correo: " + e.getMessage());
