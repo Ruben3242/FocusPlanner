@@ -1,90 +1,53 @@
 # Focus Planner
 
-Focus Planner es una aplicación móvil de productividad desarrollada con Android (Jetpack Compose) y un backend en Spring Boot. Está diseñada para ayudar a los usuarios a gestionar sus tareas diarias de forma eficiente, integrando funcionalidades como gestión de tareas, temporizador Pomodoro, estadísticas visuales, sincronización con Google Calendar y personalización del perfil.
+**Focus Planner** es una aplicación móvil de productividad que permite gestionar tareas, sincronizarlas con Google Calendar, utilizar la técnica Pomodoro y visualizar estadísticas personalizadas. Está desarrollada en **Android (Jetpack Compose)** y conectada a un backend en **Spring Boot** con base de datos **MySQL**.
 
-## Características principales
+## Funcionalidades principales
 
-- Registro y login con verificación de correo electrónico
-- Creación, edición, eliminación y filtrado de tareas
-- Calendario mensual interactivo con tareas organizadas por fecha y estado
-- Sincronización con Google Calendar (creación y eliminación de eventos)
-- Estadísticas de uso y rendimiento del usuario con gráficos
-- Temporizador Pomodoro con notificaciones y control de ciclos
+- Registro e inicio de sesión con verificación por correo
+- Gestión completa de tareas: crear, editar, eliminar y filtrar
+- Calendario mensual interactivo con codificación visual por estado
+- Temporizador Pomodoro configurable con notificaciones
+- Sincronización de tareas con Google Calendar
+- Perfil de usuario editable y estadísticas en tiempo real
 - Exportación e importación de tareas
-- Perfil de usuario editable con foto personalizada
-- Sección de ajustes con opciones avanzadas
+- Ajustes avanzados de cuenta y notificaciones
 
 ## Tecnologías utilizadas
 
-### Frontend (Android)
+### Frontend
 - Kotlin
 - Jetpack Compose
 - Retrofit 2
 - StateFlow
-- SharedPreferences / DataStore
-- Notificaciones locales
+- Notifications
+- DataStore / SharedPreferences
 
 ### Backend
-- Java
+- Java 17
 - Spring Boot
-- Spring Security con JWT personalizado (HS256)
+- Spring Security + JWT personalizado
 - MySQL
 - Swagger / OpenAPI
-- Ngrok para pruebas remotas
+- Ngrok (durante desarrollo local)
 
-### Servicios y APIs externas
+### APIs y servicios externos
 - Google Calendar API (OAuth2)
-- Envío de correo de verificación
-- Postman y Swagger para documentación de endpoints
+- Verificación de cuenta por email
 
-## Pruebas realizadas
+## Instalación local
 
-- Pruebas funcionales de tareas: creación, edición, borrado y exportación
-- Sincronización con Google Calendar verificada en múltiples casos
-- Expiración y renovación de tokens JWT (pruebas de seguridad)
-- Calendario visual: carga correcta por mes, colores por estado
-- Rendimiento: prueba de carga de 100 tareas, respuesta media bajo 400ms
-- Pomodoro completo sin pérdidas de rendimiento ni consumo excesivo de memoria
-- Pruebas manuales en múltiples dispositivos Android
-- Registro de logs y validación de errores
+### Requisitos
 
-## Seguridad
+- Android Studio (Gira en API 33+)
+- Java 17
+- MySQL
+- Postman o Swagger para pruebas de API
 
-- Autenticación con JWT y refresh tokens
-- Verificación de cuenta mediante token enviado por correo
-- Protección de rutas por usuario y validación de sesión
-- Almacenamiento seguro de credenciales en backend
+### Pasos
 
-## Despliegue previsto
+#### 1. Clona este repositorio
 
-Para llevar el sistema a producción, se plantean los siguientes pasos:
-
-1. Adquisición de un dominio propio (por ejemplo: focusplanner.app)
-2. Hosting del backend (opciones: Google Cloud, Railway, Render)
-3. Base de datos remota segura (Google Cloud SQL, PlanetScale)
-4. Cumplimiento de requisitos de seguridad y permisos de Google Play
-5. Publicación en Google Play Store con revisión del .apk y políticas de uso
-
-## Estructura del proyecto
-
-- Backend: Spring Boot con estructura MVC (controladores, servicios, modelos)
-- Frontend: App Android modularizada por pantallas, ViewModel por cada vista, patrón MVVM
-- Base de datos: MySQL con relaciones entre usuarios, tareas y tokens
-
-## Documentación complementaria
-
-Este proyecto se ha documentado como Trabajo de Fin de Grado e incluye los siguientes anexos:
-
-- Anexo A: Fragmentos de código clave del backend (controladores y servicios)
-- Anexo B: Estructura relacional de la base de datos
-- Anexo C: Tabla de endpoints disponibles en la API
-- Anexo D: Configuración de sincronización con Google Calendar
-- Anexo E: Configuración de Retrofit y autenticación en el cliente Android
-
-## Créditos y agradecimientos
-
-Este proyecto ha sido desarrollado como parte del Trabajo de Fin de Grado en Desarrollo de Aplicaciones Multiplataforma. Se agradece especialmente al tutor Pedro por su orientación técnica, así como a los familiares y compañeros que colaboraron con pruebas y sugerencias durante el proceso de desarrollo.
-
-## Licencia
-
-Proyecto desarrollado con fines educativos. Su uso está permitido para aprendizaje o pruebas no comerciales. Para uso comercial, contactar con el autor.
+```bash
+git clone https://github.com/tuusuario/focus-planner.git
+cd focus-planner
